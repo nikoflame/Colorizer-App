@@ -1,13 +1,14 @@
 import io
 import numpy as np
 import cv2
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, Request
 from fastapi.responses import Response
 from PIL import Image
 import torch
 import torchvision.transforms as transforms
 import sys
 import os
+from fastapi.middleware.cors import CORSMiddleware
 
 # Importing model fix
 colorization_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../colorization"))
@@ -17,6 +18,23 @@ from colorizers import eccv16, siggraph17
 from colorizers.util import preprocess_img, postprocess_tens, load_img
 
 app = FastAPI()
+
+@app.options("/colorize/")
+async def preflight(request: Request):
+    return Response(headers={
+        "Access-Control-Allow-Origin": "http://localhost:5173",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+    })
+
+# Middleware to fix communication between ends
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Not safe for production?
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Load pre-trained model (Zhang et al.)
 colorizer_eccv16 = eccv16(pretrained=True).eval()
