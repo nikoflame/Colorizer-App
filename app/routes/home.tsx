@@ -37,7 +37,7 @@ const Home: React.FC = () => {
         newWidth = (width / height) * maxSize;
       }
 
-      // Increase border size by 10px in each direction (20px total size increase)
+      // We add 20 to each dimension to account for a 10px border all around
       setImageSize({ width: Math.round(newWidth) + 20, height: Math.round(newHeight) + 20 });
     };
   };
@@ -61,7 +61,7 @@ const Home: React.FC = () => {
 
       if (response.ok) {
         const blob = await response.blob();
-        setColorizedImage(URL.createObjectURL(blob)); // Replace preview with colorized image
+        setColorizedImage(URL.createObjectURL(blob));
         console.log("Colorized image received");
       } else {
         console.error("Upload failed:", response.statusText);
@@ -73,30 +73,87 @@ const Home: React.FC = () => {
     }
   };
 
+  // Determine the container width:
+  // - If we have both preview and colorized images, make room for both side by side.
+  // - Otherwise, just room for the preview or (if no preview) a default size.
+  const containerWidth = previewImage
+    ? colorizedImage
+      // For two images side by side, we do: imageSize.width * 2 - 20
+      // Explanation:
+      //   - imageSize.width includes 20px for border (10px each side).
+      //   - For two images in a single border, we only add one extra "image width minus its border".
+      //   - So total is (width + (width - 20)) = 2*width - 20.
+      ? imageSize.width * 2 - 20
+      : imageSize.width
+    : 500; // fallback if no preview
+
+  const containerHeight = previewImage ? imageSize.height : 300; // fallback if no preview
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E005F] text-white">
       <h1 className="text-9xl mb-6">
         AI Col<span className="text-gradient">orizer</span>
       </h1>
 
-      {/* Upload Box (Border Stays, Content Changes, Dynamic Size) */}
+      {/* Wrap everything (border + star) in a flex row so the star can be on the right */}
       <div className="relative flex items-center">
-        <label 
+        {/* Label for file input so user can click anywhere in the border to upload */}
+        <label
           htmlFor="file-upload"
-          className={`cursor-pointer rounded-xl text-center flex items-center justify-center ${
-            previewImage ? "border-[10px]" : "border-10"
-          } border-white`}
-          style={{ width: `${imageSize.width}px`, height: `${imageSize.height}px` }} // Dynamically update size
+          className="border-[10px] border-white rounded-xl flex"
+          style={{
+            width: `${containerWidth}px`,
+            height: `${containerHeight}px`,
+          }}
         >
-          {colorizedImage ? (
-            // Show Colorized Image
-            <img src={colorizedImage} alt="Colorized" className="w-full h-full object-cover rounded-xl" />
-          ) : previewImage ? (
-            // Show Preview Before Upload (Resized)
-            <img src={previewImage} alt="Preview" className="rounded-xl" style={{ maxWidth: "512px", maxHeight: "512px", width: `${imageSize.width - 20}px`, height: `${imageSize.height - 20}px` }} />
+          {/* If there's a preview, show either preview alone or preview + colorized side by side */}
+          {previewImage ? (
+            <>
+              {/* Preview (left side) */}
+              <div
+                style={{
+                  width: `${imageSize.width - 20}px`,
+                  height: `${imageSize.height - 20}px`,
+                }}
+                className="flex items-center justify-center"
+              >
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  className="rounded-xl"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+
+              {/* Colorized (right side), only if available */}
+              {colorizedImage && (
+                <div
+                  style={{
+                    width: `${imageSize.width - 20}px`,
+                    height: `${imageSize.height - 20}px`,
+                  }}
+                  className="flex items-center justify-center"
+                >
+                  <img
+                    src={colorizedImage}
+                    alt="Colorized"
+                    className="rounded-xl"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+              )}
+            </>
           ) : (
-            // Default Upload Prompt
-            <div className="flex flex-col items-center">
+            // No preview yet: show upload prompt
+            <div className="w-full h-full flex flex-col items-center justify-center">
               <ArrowUpTrayIcon className="h-32 w-32 text-white" />
               <h2 className="text-5xl font-semibold mt-4">Upload an image</h2>
               <p className="text-xl mt-2">Click to browse</p>
@@ -106,7 +163,7 @@ const Home: React.FC = () => {
           )}
         </label>
 
-        {/* Hidden File Input (Triggers on Click) */}
+        {/* Hidden file input (triggered by label) */}
         <input
           id="file-upload"
           type="file"
@@ -114,17 +171,20 @@ const Home: React.FC = () => {
           className="hidden"
         />
 
-        {/* Upload Button (Appears Only When an Image is Selected) */}
+        {/* Star button on the right, only shown if there's a preview but no colorized image yet */}
         {previewImage && !colorizedImage && (
-          <button 
+          <button
             onClick={handleUpload}
             className="ml-4"
             disabled={isUploading}
+            title="Click here to Colorize"
           >
-            <img 
+            <img
               src="/images/Star.png"
               alt="Upload"
-              className={`cursor-pointer w-50 h-50 transition-opacity ${isUploading ? 'opacity-50' : 'opacity-100'}`}
+              className={`cursor-pointer w-50 h-50 transition-opacity ${
+                isUploading ? "opacity-50" : "opacity-100"
+              }`}
             />
           </button>
         )}
