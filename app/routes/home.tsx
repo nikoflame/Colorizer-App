@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { ArrowUpTrayIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowUpTrayIcon,
+  ArrowDownTrayIcon,
+  HandThumbUpIcon as HandThumbUpIconOutline,
+  HandThumbDownIcon as HandThumbDownIconOutline
+} from "@heroicons/react/24/outline";
+import { HandThumbUpIcon as HandThumbUpIconSolid } from "@heroicons/react/24/solid";
 
 const Home: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -8,12 +14,16 @@ const Home: React.FC = () => {
   const [colorizedImage, setColorizedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
+  // Track whether thumbs up has been clicked
+  const [thumbsUp, setThumbsUp] = useState<boolean>(false);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files?.[0]) return;
 
     const file = event.target.files[0];
     setSelectedFile(file);
     setColorizedImage(null); // Reset colorized image if a new file is selected
+    setThumbsUp(false);      // Reset thumbs up when new file is uploaded
 
     const imageUrl = URL.createObjectURL(file);
     setPreviewImage(imageUrl);
@@ -76,6 +86,11 @@ const Home: React.FC = () => {
     }
   };
 
+  // Handle thumbs up click
+  const handleThumbUpClick = () => {
+    thumbsUp ? setThumbsUp(false) : setThumbsUp(true);
+  };
+
   // Calculate the main border container size
   const containerWidth = previewImage
     ? colorizedImage
@@ -84,6 +99,9 @@ const Home: React.FC = () => {
     : 500; // fallback if no preview
 
   const containerHeight = previewImage ? imageSize.height : 300; // fallback if no preview
+
+  // Display text for the feedback section
+  const feedbackText = thumbsUp ? "Thanks!" : "How did we do?";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E005F] text-white">
@@ -215,6 +233,27 @@ const Home: React.FC = () => {
 
             {/* "Download" text below the icon's border */}
             <p className="mt-2 text-xl font-semibold">Download</p>
+
+            {/* Feedback section */}
+            <div className="flex flex-col items-center mt-4">
+              <p className="mb-2 text-xl font-semibold">{feedbackText}</p>
+              <div className="flex flex-row space-x-4">
+                {/* Thumbs Up */}
+                {thumbsUp ? (
+                  <HandThumbUpIconSolid
+                    className="h-8 w-8 cursor-pointer"
+                    onClick={handleThumbUpClick}
+                  />
+                ) : (
+                  <HandThumbUpIconOutline
+                    className="h-8 w-8 cursor-pointer"
+                    onClick={handleThumbUpClick}
+                  />
+                )}
+                {/* Thumbs Down (outline only for now) */}
+                <HandThumbDownIconOutline className="h-8 w-8 cursor-pointer" />
+              </div>
+            </div>
           </div>
         )}
       </div>
