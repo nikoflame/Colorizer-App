@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   ArrowUpTrayIcon,
   ArrowDownTrayIcon,
+  ArrowLeftIcon,
   HandThumbUpIcon as HandThumbUpIconOutline,
   HandThumbDownIcon as HandThumbDownIconOutline
 } from "@heroicons/react/24/outline";
@@ -109,8 +110,24 @@ const Home: React.FC = () => {
         AI Col<span className="text-gradient">orizer</span>
       </h1>
 
-      {/* Row container: main images + star, plus the extra boxes on the right */}
+      {/* Row container: main images + star, plus the back button, plus the extra boxes on the right */}
       <div className="flex flex-row items-start">
+
+        {/* Left-side boxes: only show if we have a preview */}
+        {previewImage && (
+          <div className="flex flex-col items-center mr-4">
+            {/* Box for the back button icon */}
+            <div className="border-[5px] border-white rounded-xl flex flex-col items-center">
+              {/* Button goes back/refreshes home page */}
+              <a href="/" title="Back to Home">
+                <ArrowLeftIcon className="h-12 w-12 text-white" />
+              </a>
+            </div>
+            {/* "Go Back" text below the icon's border */}
+            <p className="mt-2 text-xl font-semibold">Go Back</p>
+          </div>
+        )}
+
         {/* Main border container + star button */}
         <div className="relative flex flex-row items-start">
           {/* Main border (label) - triggers file input */}
