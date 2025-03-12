@@ -14,17 +14,14 @@ const Home: React.FC = () => {
   const [imageSize, setImageSize] = useState<{ width: number; height: number }>({ width: 500, height: 300 });
   const [colorizedImage, setColorizedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-
-  // Track whether thumbs up has been clicked
   const [thumbsUp, setThumbsUp] = useState<boolean>(false);
+  const [dragActive, setDragActive] = useState<boolean>(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files?.[0]) return;
-
-    const file = event.target.files[0];
+  // Helper to process file uploads (from file input or drag and drop)
+  const processFile = (file: File) => {
     setSelectedFile(file);
     setColorizedImage(null); // Reset colorized image if a new file is selected
-    setThumbsUp(false);      // Reset thumbs up when new file is uploaded
+    setThumbsUp(false);      // Reset thumbs up when a new file is uploaded
 
     const imageUrl = URL.createObjectURL(file);
     setPreviewImage(imageUrl);
@@ -34,8 +31,6 @@ const Home: React.FC = () => {
     img.src = imageUrl;
     img.onload = () => {
       const { width, height } = img;
-
-      // Scale the image while keeping aspect ratio
       const maxSize = 512;
       let newWidth = width;
       let newHeight = height;
@@ -56,6 +51,42 @@ const Home: React.FC = () => {
     };
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.[0]) return;
+    const file = event.target.files[0];
+    processFile(file);
+  };
+
+  // Drag and drop event handlers
+  const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragEnter = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+    if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+      const file = event.dataTransfer.files[0];
+      processFile(file);
+    }
+  };
+
+  // Handle Uploads
   const handleUpload = async () => {
     if (!selectedFile) return;
 
@@ -118,12 +149,10 @@ const Home: React.FC = () => {
           <div className="flex flex-col items-center mr-4">
             {/* Box for the back button icon */}
             <div className="border-[5px] border-white rounded-xl flex flex-col items-center">
-              {/* Button goes back/refreshes home page */}
               <a href="/" title="Back to Home">
                 <ArrowLeftIcon className="h-12 w-12 text-white" />
               </a>
             </div>
-            {/* "Go Back" text below the icon's border */}
             <p className="mt-2 text-xl font-semibold">Go Back</p>
           </div>
         )}
@@ -133,13 +162,16 @@ const Home: React.FC = () => {
           {/* Main border (label) - triggers file input */}
           <label
             htmlFor="file-upload"
-            className="border-[10px] border-white rounded-xl flex"
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-[10px] border-white rounded-xl flex ${dragActive ? 'bg-gray-200' : ''}`}
             style={{
               width: `${containerWidth}px`,
               height: `${containerHeight}px`,
             }}
           >
-            {/* If we have a preview, show it (and colorized) side by side */}
             {previewImage ? (
               <>
                 {/* Preview (left side) */}
@@ -215,9 +247,7 @@ const Home: React.FC = () => {
               <img
                 src="/images/Star.png"
                 alt="Upload"
-                className={`cursor-pointer w-50 h-50 transition-opacity ${
-                  isUploading ? "opacity-50" : "opacity-100"
-                }`}
+                className={`cursor-pointer w-50 h-50 transition-opacity ${isUploading ? "opacity-50" : "opacity-100"}`}
               />
             </button>
           )}
@@ -238,7 +268,6 @@ const Home: React.FC = () => {
 
             {/* Box for the download icon */}
             <div className="border-[5px] border-white rounded-xl flex flex-col items-center">
-              {/* Download link for the full-size colorized image */}
               <a
                 href={colorizedImage}
                 download="colorized.png"
@@ -248,26 +277,17 @@ const Home: React.FC = () => {
               </a>
             </div>
 
-            {/* "Download" text below the icon's border */}
             <p className="mt-2 text-xl font-semibold">Download</p>
 
             {/* Feedback section */}
             <div className="flex flex-col items-center mt-4">
               <p className="mb-2 text-xl font-semibold">{feedbackText}</p>
               <div className="flex flex-row space-x-4">
-                {/* Thumbs Up */}
                 {thumbsUp ? (
-                  <HandThumbUpIconSolid
-                    className="h-8 w-8 cursor-pointer"
-                    onClick={handleThumbUpClick}
-                  />
+                  <HandThumbUpIconSolid className="h-8 w-8 cursor-pointer" onClick={handleThumbUpClick} />
                 ) : (
-                  <HandThumbUpIconOutline
-                    className="h-8 w-8 cursor-pointer"
-                    onClick={handleThumbUpClick}
-                  />
+                  <HandThumbUpIconOutline className="h-8 w-8 cursor-pointer" onClick={handleThumbUpClick} />
                 )}
-                {/* Thumbs Down (outline only for now) */}
                 <HandThumbDownIconOutline className="h-8 w-8 cursor-pointer" />
               </div>
             </div>
