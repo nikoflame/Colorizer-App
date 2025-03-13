@@ -12,9 +12,11 @@ app = Flask(__name__)
 # Configure CORS with the allowed origins
 CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
 
-# Load the saved model (adjust the path if necessary)
-MODEL_PATH = "models/colorizer_model.keras"
-model = tf.keras.models.load_model(MODEL_PATH)
+# Load the saved model
+WEIGHT_PATH = "models/colorizer_model_weightless_test.h5"
+MODEL_PATH = "models/colorizer_model_weightless_test.keras"
+model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+model.load_weights(WEIGHT_PATH)
 
 def colorize_image(img_array):
     """

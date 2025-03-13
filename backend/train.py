@@ -69,11 +69,12 @@ x12 = tf.reshape(x12,(1,x, y,2))
 model = keras.Model(inputs=[x1, size_input], outputs=x12)
 
 model.compile(optimizer='rmsprop', loss='mse')
-model.fit([X, X_size], Y, batch_size=1, epochs=1000, verbose=1)
+model.fit([X, X_size], Y, batch_size=1, epochs=1, verbose=1)
 
 model.evaluate([X, X_size], Y, batch_size=1)
 
-model.save('colorizer_model.keras')
+model.save('colorizer_model_weightless_test.keras')
+model.save_weights('colorizer_model_weightless_test.h5')
 
 # Test image
 folder_path = 'Data/Test/'
