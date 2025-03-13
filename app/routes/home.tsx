@@ -21,6 +21,7 @@ const Home: React.FC = () => {
   const [thumbsDown, setThumbsDown] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [feedbackActive, setFeedbackActive] = useState<boolean>(false);
+  const [feedback, setFeedback] = useState<string>("");
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
@@ -141,6 +142,45 @@ const Home: React.FC = () => {
     }
   }
 
+  const handleSubmitFeedback = () => {
+    console.log('Submitting feedback:', feedback);
+    fetch('http://localhost:3001/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feedback }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          console.log('Feedback stored with ID:', data.id);
+          setFeedback(''); // Clear the textarea after submission
+        } else {
+          console.error('Error storing feedback:', data.error);
+        }
+      })
+      .catch((err) => console.error('Fetch error:', err));
+      window.location.href = '/'; // Go back to the home page
+  };
+  
+  const handleNoThankYou = () => {
+    fetch('http://localhost:3001/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feedback: 'N/A' }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          console.log('Feedback stored with ID:', data.id);
+          setFeedback(''); // Clear the textarea after submission
+        } else {
+          console.error('Error storing feedback:', data.error);
+        }
+      })
+      .catch((err) => console.error('Fetch error:', err));
+      window.location.href = '/'; // Go back to the home page
+  };
+
   // Calculate the main border container size
   const containerWidth = feedbackActive 
     ? 800 // fixed width for feedback section
@@ -239,22 +279,22 @@ const Home: React.FC = () => {
                     <textarea
                       className="w-full max-w-xl h-24 p-2 border border-gray-300 rounded"
                       placeholder="Your feedback here..."
-                      // value={feedback}
-                      // onChange={(e) => setFeedback(e.target.value)}
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
                     />
 
                     {/* Buttons row */}
                     <div className="flex space-x-4">
                       <button
                         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                        // onClick={handleSubmitFeedback}
+                        onClick={handleSubmitFeedback}
                       >
                         SUBMIT
                       </button>
 
                       <button
                         className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
-                        // onClick={handleNoThankYou}
+                        onClick={handleNoThankYou}
                       >
                         No, thank you <span className="text-sm ml-1">(return to home page)</span>
                       </button>

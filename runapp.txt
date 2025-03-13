@@ -1,0 +1,11 @@
+-- First, run the backend:
+
+python backend/main.py
+
+-- Then, run the database server:
+
+node feedback/server.js
+
+-- Finally, run the app:
+
+npm run dev
