@@ -1,31 +1,16 @@
 import io
+import os
 import numpy as np
 import tensorflow as tf
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import StreamingResponse
+from flask import Flask, request, send_file, jsonify
+from flask_cors import CORS
 from PIL import Image
-import cv2
-from keras.preprocessing.image import img_to_array
 from skimage.color import lab2rgb
-import uvicorn
-from fastapi.middleware.cors import CORSMiddleware
 
-# FastAPI connects to the model and serves it as an API
-app = FastAPI()
-
-# Middleware to allow cross-origin requests
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Initialize the Flask app
+app = Flask(__name__)
+# Configure CORS with the allowed origins
+CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
 
 # Load the saved model (adjust the path if necessary)
 MODEL_PATH = "models/colorizer_model.keras"
@@ -45,43 +30,48 @@ def colorize_image(img_array):
     
     # Predict AB channels using the model
     output = model.predict([X, size_tensor])
-    # output shape: (1, h, w, 2); get rid of batch dimension
+    # output shape: (1, h, w, 2); remove batch dimension
     AB_img = output[0]  # Shape: (h, w, 2)
     
     # Reconstruct LAB image:
-    # - The L channel comes from the input grayscale image. Scale L from [0,1] to [0,100]
-    L_channel = img_array[:, :, 0] * 100
-    # - For A and B, scale predicted output from [0,1] to [-128,127]
-    A_channel = AB_img[:, :, 0] * 255 - 128
-    B_channel = AB_img[:, :, 1] * 255 - 128
-
-    # Stack channels together to form a LAB image
+    L_channel = img_array[:, :, 0] * 100  # Scale L from [0,1] to [0,100]
+    A_channel = AB_img[:, :, 0] * 255 - 128  # Scale A from [0,1] to [-128,127]
+    B_channel = AB_img[:, :, 1] * 255 - 128  # Scale B from [0,1] to [-128,127]
+    
+    # Stack channels to form a LAB image
     lab_image = np.stack([L_channel, A_channel, B_channel], axis=-1)
     
-    # Clip to valid LAB ranges (L: [0,100], A: [-128,127], B: [-128,127])
+    # Clip to valid LAB ranges
     lab_image[:, :, 0] = np.clip(lab_image[:, :, 0], 0, 100)
     lab_image[:, :, 1] = np.clip(lab_image[:, :, 1], -128, 127)
     lab_image[:, :, 2] = np.clip(lab_image[:, :, 2], -128, 127)
     
     # Convert LAB to RGB
     rgb_image = lab2rgb(lab_image)
-    
     # Convert to uint8
     rgb_image_uint8 = (rgb_image * 255).astype(np.uint8)
     return rgb_image_uint8
 
-@app.post("/colorize/")
-async def colorize(file: UploadFile = File(...)):
+@app.route('/colorize/', methods=['POST'])
+def colorize():
     """
     Endpoint that receives an image file,
     processes it using the trained model, and returns the colorized image.
     """
+    # Ensure the file is in the request
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
     # Read the uploaded file
-    contents = await file.read()
-    # Open image using PIL and convert to grayscale
+    contents = file.read()
+    # Open the image using PIL and convert to grayscale
     image = Image.open(io.BytesIO(contents)).convert("L")
     
-    # Convert PIL image to numpy array
+    # Convert the PIL image to a numpy array
     img_array = np.array(image)
     # If the image is 2D (H, W), add a channel dimension to get (H, W, 1)
     if len(img_array.shape) == 2:
@@ -89,7 +79,7 @@ async def colorize(file: UploadFile = File(...)):
     # Scale image to [0,1]
     img_array = img_array / 255.0
 
-    # Colorize the image
+    # Colorize the image using the model
     colorized_img = colorize_image(img_array)
     
     # Convert the result back to a JPEG image in-memory
@@ -98,8 +88,11 @@ async def colorize(file: UploadFile = File(...)):
     result_img.save(buf, format="JPEG")
     buf.seek(0)
     
-    return StreamingResponse(buf, media_type="image/jpeg")
+    # Return the image as a response
+    return send_file(buf, mimetype="image/jpeg")
 
 if __name__ == "__main__":
-    # Run the app on localhost:8000
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    # Run Flask app with online VMS details
+    host = os.environ.get("HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host=host, port=port, debug=True)
