@@ -6,7 +6,10 @@ import {
   HandThumbUpIcon as HandThumbUpIconOutline,
   HandThumbDownIcon as HandThumbDownIconOutline
 } from "@heroicons/react/24/outline";
-import { HandThumbUpIcon as HandThumbUpIconSolid } from "@heroicons/react/24/solid";
+import { 
+  HandThumbUpIcon as HandThumbUpIconSolid,
+  HandThumbDownIcon as HandThumbDownIconSolid
+ } from "@heroicons/react/24/solid";
 
 const Home: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -15,7 +18,9 @@ const Home: React.FC = () => {
   const [colorizedImage, setColorizedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [thumbsUp, setThumbsUp] = useState<boolean>(false);
+  const [thumbsDown, setThumbsDown] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
+  const [feedbackActive, setFeedbackActive] = useState<boolean>(false);
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
@@ -120,17 +125,33 @@ const Home: React.FC = () => {
 
   // Handle thumbs up click
   const handleThumbUpClick = () => {
-    thumbsUp ? setThumbsUp(false) : setThumbsUp(true);
+    setThumbsUp(!thumbsUp);
+    if (!thumbsUp) {
+      setThumbsDown(false);
+      setFeedbackActive(false);
+    }
   };
 
-  // Calculate the main border container size
-  const containerWidth = previewImage
-    ? colorizedImage
-      ? imageSize.width * 2 - 20 // 2 images side by side, but one shared border
-      : imageSize.width
-    : 500; // fallback if no preview
+  // Handle thumbs down click
+  const handleThumbDownClick = () => {
+    setThumbsDown(!thumbsDown);
+    if (!thumbsDown) {
+      setThumbsUp(false);
+      setFeedbackActive(!thumbsDown);
+    }
+  }
 
-  const containerHeight = previewImage ? imageSize.height : 300; // fallback if no preview
+  // Calculate the main border container size
+  const containerWidth = feedbackActive 
+    ? 800 // fixed width for feedback section
+      : previewImage
+      ? colorizedImage
+        ? imageSize.width * 2 - 20 // 2 images side by side, but one shared border
+        : imageSize.width
+      : 500; // fallback if no preview
+
+  const containerHeight = feedbackActive ? 500 // fixed height for feedback section
+    : previewImage ? imageSize.height : 300; // fallback if no preview
 
   // Display text for the feedback section
   const feedbackText = thumbsUp ? "Thanks!" : "How did we do?";
@@ -166,36 +187,83 @@ const Home: React.FC = () => {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-[10px] border-white rounded-xl flex ${dragActive ? 'bg-gray-200' : ''}`}
-            style={{
+            className={`border-[10px] border-white rounded-xl flex ${dragActive ? 'bg-gray-400' : ''}`}
+            style= {dragActive ? {
+              width: `${containerWidth +10}px`,
+              height: `${containerHeight +10}px`,
+            } : {
               width: `${containerWidth}px`,
               height: `${containerHeight}px`,
             }}
           >
-            {previewImage ? (
-              <>
-                {/* Preview (left side) */}
-                <div
-                  style={{
-                    width: `${imageSize.width - 20}px`,
-                    height: `${imageSize.height - 20}px`,
-                  }}
-                  className="flex items-center justify-center"
-                >
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="rounded-xl"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </div>
+            {/* Feedback section (when thumbs down is solid) */}
+            {
+              feedbackActive ? (
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  <div className="border-[10px] border-white rounded-xl flex">
+                    <div
+                      className="flex items-center justify-center"
+                    >
+                      {/* Preview image with fallback */}
+                      <img
+                        src={previewImage ?? ""}
+                        alt="Preview"
+                        className="rounded-xl"
+                        style={{
+                          maxWidth: "128px",
+                          maxHeight: "128px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </div>
+                    <div
+                      className="flex items-center justify-center"
+                    >
+                      {/* Colorized image with fallback */}
+                      <img
+                        src={colorizedImage ?? ""}
+                        alt="Colorized"
+                        className="rounded-xl"
+                        style={{
+                          maxWidth: "128px",
+                          maxHeight: "128px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {/* Textbox section */}
+                  <h2 className="text-2xl font-semibold mt-2">I'm sorry we didn't match your expectations!</h2>
+                  <p className="text-2xl font-semibold mt-2">Please give us feedback so we can improve:</p>
+                  <div className="mt-4 flex flex-col items-center space-y-4">
+                    <textarea
+                      className="w-full max-w-xl h-24 p-2 border border-gray-300 rounded"
+                      placeholder="Your feedback here..."
+                      // value={feedback}
+                      // onChange={(e) => setFeedback(e.target.value)}
+                    />
 
-                {/* Colorized image (right side), if available */}
-                {colorizedImage && (
+                    {/* Buttons row */}
+                    <div className="flex space-x-4">
+                      <button
+                        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                        // onClick={handleSubmitFeedback}
+                      >
+                        SUBMIT
+                      </button>
+
+                      <button
+                        className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+                        // onClick={handleNoThankYou}
+                      >
+                        No, thank you <span className="text-sm ml-1">(return to home page)</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : previewImage ? (
+                <>
+                  {/* Preview (left side) */}
                   <div
                     style={{
                       width: `${imageSize.width - 20}px`,
@@ -204,8 +272,8 @@ const Home: React.FC = () => {
                     className="flex items-center justify-center"
                   >
                     <img
-                      src={colorizedImage}
-                      alt="Colorized"
+                      src={previewImage}
+                      alt="Preview"
                       className="rounded-xl"
                       style={{
                         maxWidth: "100%",
@@ -214,17 +282,38 @@ const Home: React.FC = () => {
                       }}
                     />
                   </div>
-                )}
-              </>
-            ) : (
-              // Otherwise, show the upload prompt
-              <div className="w-full h-full flex flex-col items-center justify-center">
-                <ArrowUpTrayIcon className="h-32 w-32 text-white" />
-                <h2 className="text-5xl font-semibold mt-4">Upload an image</h2>
-                <p className="text-xl mt-2">Click to browse</p>
-                <p className="text-xl">or</p>
-                <p className="text-xl">Drag and drop</p>
-              </div>
+
+                  {/* Colorized image (right side), if available */}
+                  {colorizedImage && (
+                    <div
+                      style={{
+                        width: `${imageSize.width - 20}px`,
+                        height: `${imageSize.height - 20}px`,
+                      }}
+                      className="flex items-center justify-center"
+                    >
+                      <img
+                        src={colorizedImage}
+                        alt="Colorized"
+                        className="rounded-xl"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                // Otherwise, show the upload prompt
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                  <ArrowUpTrayIcon className="h-32 w-32 text-white" />
+                  <h2 className="text-5xl font-semibold mt-4">Upload an image</h2>
+                  <p className="text-xl mt-2">Click to browse</p>
+                  <p className="text-xl">or</p>
+                  <p className="text-xl">Drag and drop</p>
+                </div>
             )}
           </label>
 
@@ -283,12 +372,16 @@ const Home: React.FC = () => {
             <div className="flex flex-col items-center mt-4">
               <p className="mb-2 text-xl font-semibold">{feedbackText}</p>
               <div className="flex flex-row space-x-4">
-                {thumbsUp ? (
+                {thumbsUp && !thumbsDown ? (
                   <HandThumbUpIconSolid className="h-8 w-8 cursor-pointer" onClick={handleThumbUpClick} />
                 ) : (
                   <HandThumbUpIconOutline className="h-8 w-8 cursor-pointer" onClick={handleThumbUpClick} />
                 )}
-                <HandThumbDownIconOutline className="h-8 w-8 cursor-pointer" />
+                {thumbsDown && !thumbsUp ? (
+                  <HandThumbDownIconSolid className="h-8 w-8 cursor-pointer" onClick={handleThumbDownClick} />
+                ) : (
+                  <HandThumbDownIconOutline className="h-8 w-8 cursor-pointer" onClick={handleThumbDownClick} />
+                )}
               </div>
             </div>
           </div>
