@@ -1,4 +1,4 @@
-tensorflow
+tensorflow==2.13.1
 numpy
 fastapi
 pillow
