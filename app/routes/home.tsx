@@ -10,6 +10,7 @@ import {
   HandThumbUpIcon as HandThumbUpIconSolid,
   HandThumbDownIcon as HandThumbDownIconSolid
  } from "@heroicons/react/24/solid";
+import { set } from "mongoose";
 
 const Home: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -22,6 +23,8 @@ const Home: React.FC = () => {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [feedbackActive, setFeedbackActive] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<string>("");
+  const [feedbackSuccess, setFeedbackSuccess] = useState<boolean>(false);
+  const [feedbackError, setFeedbackError] = useState<boolean>(false);
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
@@ -153,13 +156,13 @@ const Home: React.FC = () => {
       .then((data) => {
         if (data.success) {
           console.log('Feedback stored with ID:', data.id);
-          setFeedback(''); // Clear the textarea after submission
+          setFeedbackSuccess(true);
         } else {
           console.error('Error storing feedback:', data.error);
+          setFeedbackError(true);
         }
       })
       .catch((err) => console.error('Fetch error:', err));
-      //window.location.href = '/'; // Go back to the home page
   };
   
   const handleNoThankYou = () => {
@@ -173,12 +176,18 @@ const Home: React.FC = () => {
         if (data.success) {
           console.log('Feedback stored with ID:', data.id);
           setFeedback(''); // Clear the textarea after submission
+          window.location.href = '/'; // Go back to the home page
         } else {
           console.error('Error storing feedback:', data.error);
+          window.location.href = '/'; // Go back to the home page anyways
         }
       })
       .catch((err) => console.error('Fetch error:', err));
-      //window.location.href = '/'; // Go back to the home page
+  };
+
+  const handleReturnHomeFromFeedback = () => {
+    setFeedback(''); // Clear the textarea after submission
+    window.location.href = '/'; // Go back to the home page
   };
 
   // Calculate the main border container size
@@ -287,17 +296,23 @@ const Home: React.FC = () => {
                     <div className="flex space-x-4">
                       <button
                         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                        onClick={handleSubmitFeedback}
+                        onClick={feedbackSuccess ? handleReturnHomeFromFeedback : handleSubmitFeedback}
                       >
-                        SUBMIT
+                        {feedbackSuccess 
+                          ? "Thank you for your feedback! Click here to go back to the home page." 
+                          : "SUBMIT"
+                        }
                       </button>
-
-                      <button
-                        className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
-                        onClick={handleNoThankYou}
-                      >
-                        No, thank you <span className="text-sm ml-1">(return to home page)</span>
-                      </button>
+                      {
+                        feedbackSuccess ? null : (
+                          <button
+                            className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+                            onClick={handleNoThankYou}
+                          >
+                            No, thank you <span className="text-sm ml-1">(return to home page)</span>
+                          </button>
+                        )
+                      }
                     </div>
                   </div>
                 </div>
