@@ -69,15 +69,15 @@ x12 = tf.reshape(x12,(1,x, y,2))
 model = keras.Model(inputs=[x1, size_input], outputs=x12)
 
 model.compile(optimizer='rmsprop', loss='mse')
-model.fit([X, X_size], Y, batch_size=1, epochs=1, verbose=1)
+model.fit([X, X_size], Y, batch_size=1, epochs=1000, validation_split=0.1, verbose=1)
 
 model.evaluate([X, X_size], Y, batch_size=1)
 
 # Save model as JSON
 model_json = model.to_json()
-with open("models/colorizer_model_weightless_test.json", "w") as json_file:
+with open("models/colorizer_model_3.json", "w") as json_file:
     json_file.write(model_json)
-model.save_weights('models/colorizer_model_weightless_test.h5')
+model.save_weights('models/colorizer_model_3.h5')
 
 # Test image
 folder_path = 'Data/Test/'
