@@ -144,7 +144,7 @@ const Home: React.FC = () => {
 
   const handleSubmitFeedback = () => {
     console.log('Submitting feedback:', feedback);
-    fetch('http://localhost:5000/feedback', {
+    fetch('https://colorizer-app-2.onrender.com/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feedback }),
@@ -163,7 +163,7 @@ const Home: React.FC = () => {
   };
   
   const handleNoThankYou = () => {
-    fetch('http://localhost:5000/feedback', {
+    fetch('https://colorizer-app-2.onrender.com/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feedback: 'N/A' }),
