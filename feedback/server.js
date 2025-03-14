@@ -9,7 +9,7 @@ app.use(express.json());
 
 // CORS fix
 app.use(cors({
-  origin: 'http://localhost:10000'
+  origin: 'http://localhost:5000'
 }));
 
 // POST /feedback endpoint to store feedback
