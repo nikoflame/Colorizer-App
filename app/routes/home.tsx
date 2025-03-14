@@ -103,7 +103,7 @@ const Home: React.FC = () => {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("https://colorizer-app.onrender.com/colorize/", {
+      const response = await fetch("https://colorizer-app-1.onrender.com/colorize/", {
         method: "POST",
         body: formData,
       });
