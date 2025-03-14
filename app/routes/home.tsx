@@ -144,7 +144,7 @@ const Home: React.FC = () => {
 
   const handleSubmitFeedback = () => {
     console.log('Submitting feedback:', feedback);
-    fetch('http://localhost:10000/feedback', {
+    fetch('http://localhost:5000/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feedback }),
@@ -163,7 +163,7 @@ const Home: React.FC = () => {
   };
   
   const handleNoThankYou = () => {
-    fetch('http://localhost:10000/feedback', {
+    fetch('http://localhost:5000/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feedback: 'N/A' }),
