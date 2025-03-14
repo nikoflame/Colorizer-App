@@ -19,8 +19,8 @@ CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
 # Test loading model from JSON
 with open("models/colorizer_model_weightless_test.json", "r") as json_file:
     model_json = json_file.read()
-    model = model_from_json(model_json)
-    model.load_weights("models/colorizer_model_weightless_test.h5")
+model = model_from_json(model_json)
+model.load_weights("models/colorizer_model_weightless_test.h5")
 
 # Load the saved model
 #WEIGHT_PATH = "models/colorizer_model_weightless_test.h5"
