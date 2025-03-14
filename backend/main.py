@@ -108,6 +108,5 @@ def colorize():
 
 if __name__ == "__main__":
     # Run Flask app with online VMS details
-    host = os.environ.get("HOST", "0.0.0.0")
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host=host, port=port, debug=True)
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=8080)
