@@ -159,7 +159,7 @@ const Home: React.FC = () => {
         }
       })
       .catch((err) => console.error('Fetch error:', err));
-      window.location.href = '/'; // Go back to the home page
+      //window.location.href = '/'; // Go back to the home page
   };
   
   const handleNoThankYou = () => {
@@ -178,7 +178,7 @@ const Home: React.FC = () => {
         }
       })
       .catch((err) => console.error('Fetch error:', err));
-      window.location.href = '/'; // Go back to the home page
+      //window.location.href = '/'; // Go back to the home page
   };
 
   // Calculate the main border container size
