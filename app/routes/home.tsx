@@ -25,6 +25,8 @@ const Home: React.FC = () => {
   const [feedback, setFeedback] = useState<string>("");
   const [feedbackSuccess, setFeedbackSuccess] = useState<boolean>(false);
   const [feedbackError, setFeedbackError] = useState<boolean>(false);
+  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState<boolean>(false);
+  const [isNoFeedbackSubmitting, setIsNoFeedbackSubmitting] = useState<boolean>(false);
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
@@ -146,6 +148,7 @@ const Home: React.FC = () => {
   }
 
   const handleSubmitFeedback = () => {
+    setIsFeedbackSubmitting(true);
     console.log('Submitting feedback:', feedback);
     fetch('https://colorizer-app-2.onrender.com/feedback', {
       method: 'POST',
@@ -156,16 +159,20 @@ const Home: React.FC = () => {
       .then((data) => {
         if (data.success) {
           console.log('Feedback stored with ID:', data.id);
+          setIsFeedbackSubmitting(false);
           setFeedbackSuccess(true);
         } else {
           console.error('Error storing feedback:', data.error);
+          setIsFeedbackSubmitting(false);
           setFeedbackError(true);
         }
       })
       .catch((err) => console.error('Fetch error:', err));
+      setIsFeedbackSubmitting(false);
   };
   
   const handleNoThankYou = () => {
+    setIsNoFeedbackSubmitting(true);
     fetch('https://colorizer-app-2.onrender.com/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -175,14 +182,17 @@ const Home: React.FC = () => {
       .then((data) => {
         if (data.success) {
           console.log('Feedback stored with ID:', data.id);
+          setIsNoFeedbackSubmitting(false);
           setFeedback(''); // Clear the textarea after submission
           window.location.href = '/'; // Go back to the home page
         } else {
           console.error('Error storing feedback:', data.error);
+          setIsNoFeedbackSubmitting(false);
           window.location.href = '/'; // Go back to the home page anyways
         }
       })
       .catch((err) => console.error('Fetch error:', err));
+      setIsNoFeedbackSubmitting(false);
   };
 
   const handleReturnHomeFromFeedback = () => {
@@ -297,23 +307,47 @@ const Home: React.FC = () => {
                       <button
                         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
                         onClick={feedbackSuccess ? handleReturnHomeFromFeedback : handleSubmitFeedback}
+                        disabled={isFeedbackSubmitting || isNoFeedbackSubmitting}
                       >
                         {feedbackSuccess 
                           ? "Thank you for your feedback! Click here to go back to the home page." 
                           : "SUBMIT"
                         }
                       </button>
-                      {
-                        feedbackSuccess ? null : (
+                      { feedbackSuccess ? null : (
                           <button
                             className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
                             onClick={handleNoThankYou}
+                            disabled={isFeedbackSubmitting || isNoFeedbackSubmitting}
                           >
                             No, thank you <span className="text-sm ml-1">(return to home page)</span>
                           </button>
                         )
                       }
                     </div>
+
+                    {/* Loading state */}
+                    { isFeedbackSubmitting ? 
+                      (
+                        <div className="flex flex-col items-center">
+                          <p className="text-2xl font-semibold mt-2">Please wait... Submitting feedback</p>
+                          <img
+                            src="public/images/loading.gif"
+                            alt="Loading..."
+                            className="cursor-pointer w-25 h-25"
+                          />
+                        </div>
+                      ) : isNoFeedbackSubmitting ? (
+                        <div className="flex flex-col items-center">
+                          <p className="text-2xl font-semibold mt-2">Please wait... Sending thumbs-down to server</p>
+                          <img
+                            src="public/images/loading.gif"
+                            alt="Loading..."
+                            className="cursor-pointer w-25 h-25"
+                          />
+                        </div>
+                      )
+                    : null }
                   </div>
                 </div>
               ) : previewImage ? (
@@ -380,7 +414,7 @@ const Home: React.FC = () => {
             className="hidden"
           />
 
-          {/* Star button (to colorize) - only if there's a preview and no colorized image yet */}
+          {/* Star button (to colorize) - with loading gif for processing */}
           {previewImage && !colorizedImage && (
             <button
               onClick={handleUpload}
@@ -388,11 +422,19 @@ const Home: React.FC = () => {
               disabled={isUploading}
               title="Click here to Colorize"
             >
-              <img
-                src="/images/Star.png"
-                alt="Upload"
-                className={`cursor-pointer w-50 h-50 transition-opacity ${isUploading ? "opacity-50" : "opacity-100"}`}
-              />
+              { isUploading ? (
+                <img
+                  src="public/images/loading.gif"
+                  alt="Loading..."
+                  className="cursor-pointer w-50 h-50"
+                />
+              ) : (
+                <img
+                  src="/images/Star.png"
+                  alt="Upload"
+                  className={`cursor-pointer w-50 h-50 transition-opacity`}
+                />
+              )}
             </button>
           )}
         </div>
