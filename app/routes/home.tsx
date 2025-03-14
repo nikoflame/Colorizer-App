@@ -103,7 +103,7 @@ const Home: React.FC = () => {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/colorize/", {
+      const response = await fetch("http://127.0.0.1:10000/colorize/", {
         method: "POST",
         body: formData,
       });
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
 
   const handleSubmitFeedback = () => {
     console.log('Submitting feedback:', feedback);
-    fetch('http://localhost:3001/feedback', {
+    fetch('http://localhost:10000/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feedback }),
@@ -163,7 +163,7 @@ const Home: React.FC = () => {
   };
   
   const handleNoThankYou = () => {
-    fetch('http://localhost:3001/feedback', {
+    fetch('http://localhost:10000/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feedback: 'N/A' }),
