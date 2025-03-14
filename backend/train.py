@@ -73,7 +73,7 @@ model.fit([X, X_size], Y, batch_size=1, epochs=1, verbose=1)
 
 model.evaluate([X, X_size], Y, batch_size=1)
 
-model.save('colorizer_model_weightless_test.keras')
+model.save('colorizer_model_weightless_test.json')
 model.save_weights('colorizer_model_weightless_test.h5')
 
 # Test image

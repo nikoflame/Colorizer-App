@@ -2,6 +2,7 @@ import io
 import os
 import numpy as np
 import tensorflow as tf
+from keras.models import model_from_json
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 from PIL import Image
@@ -13,20 +14,22 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
 
 # TF Debugger
-tf.debugging.set_log_device_placement(True)
+#tf.debugging.set_log_device_placement(True)
+
+# Test loading model from JSON
+with open("models/colorizer_model_weightless_test.json", "r") as json_file:
+    model_json = json_file.read()
+    model = model_from_json(model_json)
+    model.load_weights("models/colorizer_model_weightless_test.h5")
 
 # Load the saved model
-WEIGHT_PATH = "models/colorizer_model_weightless_test.h5"
-MODEL_PATH = "models/colorizer_model_weightless_test.keras"
-model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+#WEIGHT_PATH = "models/colorizer_model_weightless_test.h5"
+#MODEL_PATH = "models/colorizer_model_weightless_test.keras"
+#model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+#model.load_weights(WEIGHT_PATH)
 
 # TF Debugger
-model.summary()
-
-model.load_weights(WEIGHT_PATH)
-
-# TF Debugger
-model.summary()
+#model.summary()
 
 def colorize_image(img_array):
     """
