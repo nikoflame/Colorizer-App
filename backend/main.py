@@ -11,7 +11,7 @@ from skimage.color import lab2rgb
 # Initialize the Flask app
 app = Flask(__name__)
 # Configure CORS with the allowed origins
-CORS(app, origins=["http://localhost:5173", "http://127.0.0.1:5173"])
+CORS(app, origins=["http://localhost:10000", "http://127.0.0.1:10000"])
 
 # TF Debugger
 #tf.debugging.set_log_device_placement(True)

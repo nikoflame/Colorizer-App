@@ -73,7 +73,7 @@ model.fit([X, X_size], Y, batch_size=1, epochs=1, verbose=1)
 
 model.evaluate([X, X_size], Y, batch_size=1)
 
-#model.save('colorizer_model_weightless_test.keras')
+# Save model as JSON
 model_json = model.to_json()
 with open("models/colorizer_model_weightless_test.json", "w") as json_file:
     json_file.write(model_json)
