@@ -69,7 +69,7 @@ x12 = tf.reshape(x12,(1,x, y,2))
 model = keras.Model(inputs=[x1, size_input], outputs=x12)
 
 model.compile(optimizer='rmsprop', loss='mse')
-model.fit([X, X_size], Y, batch_size=1, epochs=1000, validation_split=0.1, verbose=1)
+model.fit([X, X_size], Y, batch_size=1, epochs=4000, validation_split=0.1, verbose=1)
 
 model.evaluate([X, X_size], Y, batch_size=1)
 

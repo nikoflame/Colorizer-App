@@ -17,10 +17,10 @@ CORS(app, origins=["https://localhost:10000", "https://127.0.0.1:10000"])
 #tf.debugging.set_log_device_placement(True)
 
 # Test loading model from JSON
-with open("models/colorizer_model_weightless_test.json", "r") as json_file:
+with open("models/colorizer_model_3.json", "r") as json_file:
     model_json = json_file.read()
 model = model_from_json(model_json)
-model.load_weights("models/colorizer_model_weightless_test.h5")
+model.load_weights("models/colorizer_model_3.h5")
 
 # Load the saved model
 #WEIGHT_PATH = "models/colorizer_model_weightless_test.h5"
