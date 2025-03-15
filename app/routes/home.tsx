@@ -159,16 +159,16 @@ const Home: React.FC = () => {
       .then((data) => {
         if (data.success) {
           console.log('Feedback stored with ID:', data.id);
-          setIsFeedbackSubmitting(false);
           setFeedbackSuccess(true);
         } else {
           console.error('Error storing feedback:', data.error);
-          setIsFeedbackSubmitting(false);
           setFeedbackError(true);
         }
       })
-      .catch((err) => console.error('Fetch error:', err));
-      setIsFeedbackSubmitting(false);
+      .catch((err) => console.error('Fetch error:', err))
+      .finally(() => {
+        setIsFeedbackSubmitting(false);
+      });
   };
   
   const handleNoThankYou = () => {
@@ -182,17 +182,17 @@ const Home: React.FC = () => {
       .then((data) => {
         if (data.success) {
           console.log('Feedback stored with ID:', data.id);
-          setIsNoFeedbackSubmitting(false);
           setFeedback(''); // Clear the textarea after submission
           window.location.href = '/'; // Go back to the home page
         } else {
           console.error('Error storing feedback:', data.error);
-          setIsNoFeedbackSubmitting(false);
           window.location.href = '/'; // Go back to the home page anyways
         }
       })
-      .catch((err) => console.error('Fetch error:', err));
-      setIsNoFeedbackSubmitting(false);
+      .catch((err) => console.error('Fetch error:', err))
+      .finally(() => {
+        setIsNoFeedbackSubmitting(false);
+      });
   };
 
   const handleReturnHomeFromFeedback = () => {
@@ -334,7 +334,7 @@ const Home: React.FC = () => {
                           <img
                             src="/images/loading.gif"
                             alt="Loading..."
-                            className="cursor-pointer w-25 h-25"
+                            className="cursor-pointer w-24 h-24"
                           />
                         </div>
                       ) : isNoFeedbackSubmitting ? (
@@ -343,7 +343,7 @@ const Home: React.FC = () => {
                           <img
                             src="/images/loading.gif"
                             alt="Loading..."
-                            className="cursor-pointer w-25 h-25"
+                            className="cursor-pointer w-24 h-24"
                           />
                         </div>
                       )
