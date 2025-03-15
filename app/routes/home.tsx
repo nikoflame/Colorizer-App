@@ -327,27 +327,21 @@ const Home: React.FC = () => {
                     </div>
 
                     {/* Loading state */}
-                    { isFeedbackSubmitting ? 
+                    { (isFeedbackSubmitting || isNoFeedbackSubmitting) ? 
                       (
                         <div className="flex flex-col items-center">
-                          <p className="text-2xl font-semibold mt-2">Please wait... Submitting feedback</p>
+                          <p className="text-2xl font-semibold mt-2">
+                          { isFeedbackSubmitting 
+                          ? "Please wait... Submitting feedback" 
+                          : "Please wait... Submitting thumbs down as blank feedback"
+                          } </p>
                           <img
-                            src="public/images/loading.gif"
+                            src="/images/loading.gif"
                             alt="Loading..."
                             className="cursor-pointer w-25 h-25"
                           />
                         </div>
-                      ) : isNoFeedbackSubmitting ? (
-                        <div className="flex flex-col items-center">
-                          <p className="text-2xl font-semibold mt-2">Please wait... Sending thumbs-down to server</p>
-                          <img
-                            src="public/images/loading.gif"
-                            alt="Loading..."
-                            className="cursor-pointer w-25 h-25"
-                          />
-                        </div>
-                      )
-                    : null }
+                      ) : null }
                   </div>
                 </div>
               ) : previewImage ? (
@@ -424,7 +418,7 @@ const Home: React.FC = () => {
             >
               { isUploading ? (
                 <img
-                  src="public/images/loading.gif"
+                  src="/images/loading.gif"
                   alt="Loading..."
                   className="cursor-pointer w-50 h-50"
                 />
