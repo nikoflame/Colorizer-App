@@ -29,23 +29,28 @@ const Home: React.FC = () => {
   const [isNoFeedbackSubmitting, setIsNoFeedbackSubmitting] = useState<boolean>(false);
   const [isImageTooLarge, setIsImageTooLarge] = useState<boolean>(false);
   const [secondaryFeedbackActive, setSecondaryFeedbackActive] = useState<boolean>(false);
+  const [downloadFileName, setDownloadFileName] = useState<string>("");
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
     setSelectedFile(file);
     setColorizedImage(null); // Reset colorized image if a new file is selected
     setThumbsUp(false);      // Reset thumbs up when a new file is uploaded
-
+  
+    // Set the default download file name using the file's name (without extension)
+    const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+    setDownloadFileName(`${baseName}_colorized`);
+  
     const imageUrl = URL.createObjectURL(file);
     setPreviewImage(imageUrl);
-
+  
     // Create an image element to get its original dimensions
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
       const { width, height } = img;
       const maxDimension = 512;
-
+  
       if (width > maxDimension || height > maxDimension) {
         // Mark the image as too large and prompt the user for resizing
         setIsImageTooLarge(true);
@@ -68,7 +73,7 @@ const Home: React.FC = () => {
         setIsImageTooLarge(false);
       }
     };
-  };
+  };  
 
   const resize = async () => {
     if (!selectedFile || !previewImage) return;
@@ -536,6 +541,22 @@ const Home: React.FC = () => {
         {/* Right-side boxes: only show if we have a colorized image */}
         {colorizedImage && (
           <div className="flex flex-col items-center ml-4">
+
+            <p className="text-sm ml-1">Change file name here:</p>
+
+            {/* File name input above the thumbnail */}
+            <div className="flex flex-row items-center ml-4">
+              <div className="mb-2">
+                <input
+                  type="text"
+                  value={downloadFileName}
+                  onChange={(e) => setDownloadFileName(e.target.value)}
+                  className="px-2 py-1 rounded text-black"
+                />
+              </div>
+              <p className="ml-2 text-xl font-semibold">.png</p>
+            </div>
+
             {/* Box for the small colorized thumbnail */}
             <div className="border-[10px] border-white rounded-xl mb-4">
               <img
@@ -550,7 +571,7 @@ const Home: React.FC = () => {
             <div className="border-[5px] border-white rounded-xl flex flex-col items-center">
               <a
                 href={colorizedImage}
-                download="colorized.png"
+                download={downloadFileName + ".png"}
                 title="Download colorized image"
               >
                 <ArrowDownTrayIcon className="h-12 w-12 text-white" />
