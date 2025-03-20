@@ -28,6 +28,7 @@ const Home: React.FC = () => {
   const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState<boolean>(false);
   const [isNoFeedbackSubmitting, setIsNoFeedbackSubmitting] = useState<boolean>(false);
   const [isImageTooLarge, setIsImageTooLarge] = useState<boolean>(false);
+  const [secondaryFeedbackActive, setSecondaryFeedbackActive] = useState<boolean>(false);
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
@@ -284,8 +285,8 @@ const Home: React.FC = () => {
       {/* Row container: main images + star, plus the back button, plus the extra boxes on the right */}
       <div className="flex flex-row items-start">
 
-        {/* Left-side boxes: only show if we have a preview */}
-        {previewImage && (
+        {/* Left-side boxes: only show if we have a preview or secondary feedback */}
+        {(previewImage || secondaryFeedbackActive) && (
           <div className="flex flex-col items-center mr-4">
             {/* Box for the back button icon */}
             <div className="border-[5px] border-white rounded-xl flex flex-col items-center">
@@ -301,7 +302,7 @@ const Home: React.FC = () => {
         <div className="relative flex flex-row items-start">
           {/* Main border (label) - triggers file input */}
           <label
-            htmlFor={ feedbackActive ? "" : "file-upload"}
+            htmlFor={ (secondaryFeedbackActive || feedbackActive) ? "" : "file-upload"}
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
@@ -315,45 +316,54 @@ const Home: React.FC = () => {
               height: `${containerHeight}px`,
             }}
           >
-            {/* Feedback section (when thumbs down is solid) */}
+            {/* Feedback section */}
             {
-              feedbackActive ? (
+              (secondaryFeedbackActive || feedbackActive) ? (
                 <div className="w-full h-full flex flex-col items-center justify-center">
-                  <div className="border-[10px] border-white rounded-xl flex">
-                    <div
-                      className="flex items-center justify-center"
-                    >
-                      {/* Preview image with fallback */}
-                      <img
-                        src={previewImage ?? ""}
-                        alt="Preview"
-                        className="rounded-xl"
-                        style={{
-                          maxWidth: "128px",
-                          maxHeight: "128px",
-                          objectFit: "cover",
-                        }}
-                      />
+                  {feedbackActive && (
+                    // Image preview and colorized image
+                    <div className="border-[10px] border-white rounded-xl flex">
+                      <div
+                        className="flex items-center justify-center"
+                      >
+                        {/* Preview image with fallback */}
+                        <img
+                          src={previewImage ?? ""}
+                          alt="Preview"
+                          className="rounded-xl"
+                          style={{
+                            maxWidth: "128px",
+                            maxHeight: "128px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </div>
+                      <div
+                        className="flex items-center justify-center"
+                      >
+                        {/* Colorized image with fallback */}
+                        <img
+                          src={colorizedImage ?? ""}
+                          alt="Colorized"
+                          className="rounded-xl"
+                          style={{
+                            maxWidth: "128px",
+                            maxHeight: "128px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div
-                      className="flex items-center justify-center"
-                    >
-                      {/* Colorized image with fallback */}
-                      <img
-                        src={colorizedImage ?? ""}
-                        alt="Colorized"
-                        className="rounded-xl"
-                        style={{
-                          maxWidth: "128px",
-                          maxHeight: "128px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    </div>
-                  </div>
+                  )}
                   {/* Textbox section */}
-                  <h2 className="text-2xl font-semibold mt-2">I'm sorry we didn't match your expectations!</h2>
-                  <p className="text-2xl font-semibold mt-2">Please give us feedback so we can improve:</p>
+                  {feedbackActive ? (
+                    <div>
+                      <h2 className="text-2xl font-semibold mt-2">I'm sorry we didn't match your expectations!</h2>
+                      <p className="text-2xl font-semibold mt-2">Please give us feedback so we can improve:</p>
+                    </div>
+                  ) : (
+                    <h2 className="text-2xl font-semibold mt-2">We'd love to hear your feedback!</h2>
+                  )}
                   <div className="mt-4 flex flex-col items-center space-y-4">
                     <textarea
                       className="w-full max-w-xl h-24 p-2 border border-gray-300 rounded"
@@ -475,8 +485,26 @@ const Home: React.FC = () => {
           />
 
           {/* Star button (to colorize) - with loading gif for processing */}
-          {previewImage && !colorizedImage && (
-            <div>
+          {isImageTooLarge ? (
+            <div className="mt-4 p-4 bg-red-500 text-white rounded">
+              <p>Your image is too large!</p>
+              <p>Our free service does not allow images beyond a size of 512×512 pixels.</p>
+              <p> </p>
+              <p>Would you like us to resize it for you?</p>
+              <button
+                onClick={resizeAndUpload}
+                className="mt-2 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Resize my image for me
+              </button>
+              <button
+                className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+                onClick={handleReturnHomeFromFeedback}
+              >
+                No, thank you <span className="text-sm ml-1">(return to home page)</span>
+              </button>
+            </div>
+          ) : previewImage && !colorizedImage && (
               <button
                 onClick={handleUpload}
                 className="ml-4"
@@ -484,11 +512,15 @@ const Home: React.FC = () => {
                 title="Click here to Colorize"
               >
                 { isUploading ? (
-                  <img
-                    src="/images/loading.gif"
-                    alt="Loading..."
-                    className="cursor-pointer w-50 h-50"
-                  />
+                  <div className="flex flex-col items-center">
+                    <img
+                      src="/images/loading.gif"
+                      alt="Loading..."
+                      className="cursor-pointer w-50 h-50"
+                    />
+                    <p className="text-xl font-semibold mt-2">Colorizing, please wait...</p>
+                    <p className="text-xl mt-2">This may take up to three minutes depending on image size...</p>
+                  </div>
                 ) : (
                   <img
                     src="/images/Star.png"
@@ -497,19 +529,6 @@ const Home: React.FC = () => {
                   />
                 )}
               </button>
-              {isImageTooLarge && (
-                <div className="mt-4 p-4 bg-red-500 text-white rounded">
-                  <p>Our free service does not allow images beyond a size of 512×512 pixels.</p>
-                  <p>Would you like to resize and colorize it anyways?</p>
-                  <button
-                    onClick={resizeAndUpload}
-                    className="mt-2 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
-                  >
-                    Resize and Colorize Anyways
-                  </button>
-                </div>
-              )}
-            </div>
           )}
         </div>
 
@@ -559,6 +578,17 @@ const Home: React.FC = () => {
         )}
       </div>
 
+      {/* Feedback button */}
+      {!colorizedImage && (
+        <button 
+          onClick={() => setSecondaryFeedbackActive(true)}
+          className="mt-4 p-4 bg-white text-black rounded"
+          >
+            Click here to leave feedback for a previous experience, or anything else!
+        </button>
+      )}
+  
+        {/* Footer */}
       <style>
         {`
           .text-gradient {
