@@ -551,7 +551,7 @@ const Home: React.FC = () => {
                   type="text"
                   value={downloadFileName}
                   onChange={(e) => setDownloadFileName(e.target.value)}
-                  className="px-2 py-1 rounded text-black"
+                  className="px-2 py-1 rounded"
                 />
               </div>
               <p className="ml-2 text-xl font-semibold">.png</p>
