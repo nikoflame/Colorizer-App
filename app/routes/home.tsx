@@ -27,6 +27,7 @@ const Home: React.FC = () => {
   const [feedbackError, setFeedbackError] = useState<boolean>(false);
   const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState<boolean>(false);
   const [isNoFeedbackSubmitting, setIsNoFeedbackSubmitting] = useState<boolean>(false);
+  const [isImageTooLarge, setIsImageTooLarge] = useState<boolean>(false);
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
@@ -42,25 +43,84 @@ const Home: React.FC = () => {
     img.src = imageUrl;
     img.onload = () => {
       const { width, height } = img;
-      const maxSize = 512;
-      let newWidth = width;
-      let newHeight = height;
+      const maxDimension = 512;
 
-      if (width > height) {
-        newWidth = maxSize;
-        newHeight = (height / width) * maxSize;
+      if (width > maxDimension || height > maxDimension) {
+        // Mark the image as too large and prompt the user for resizing
+        setIsImageTooLarge(true);
       } else {
-        newHeight = maxSize;
-        newWidth = (width / height) * maxSize;
+        // If within limits, calculate size for display and proceed
+        let newWidth = width;
+        let newHeight = height;
+        if (width > height) {
+          newWidth = maxDimension;
+          newHeight = (height / width) * maxDimension;
+        } else {
+          newHeight = maxDimension;
+          newWidth = (width / height) * maxDimension;
+        }
+        // Add 20 to each dimension for a 10px border
+        setImageSize({
+          width: Math.round(newWidth) + 20,
+          height: Math.round(newHeight) + 20,
+        });
+        setIsImageTooLarge(false);
       }
-
-      // Add 20 to each dimension for a 10px border
-      setImageSize({
-        width: Math.round(newWidth) + 20,
-        height: Math.round(newHeight) + 20,
-      });
     };
   };
+
+  const resizeAndUpload = async () => {
+    if (!selectedFile || !previewImage) return;
+  
+    const img = new Image();
+    img.src = previewImage;
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+    
+    const maxDimension = 512;
+    let newWidth = img.width;
+    let newHeight = img.height;
+    if (img.width > maxDimension || img.height > maxDimension) {
+      if (img.width > img.height) {
+        newWidth = maxDimension;
+        newHeight = (img.height / img.width) * maxDimension;
+      } else {
+        newHeight = maxDimension;
+        newWidth = (img.width / img.height) * maxDimension;
+      }
+    }
+    
+    const canvas = document.createElement("canvas");
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.error("Could not create canvas context");
+      return;
+    }
+    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+    
+    // Convert the canvas content to a Blob
+    canvas.toBlob(async (blob) => {
+      if (blob) {
+        // Create a new File object from the blob so it can be used in FormData
+        const resizedFile = new File([blob], selectedFile.name, { type: blob.type });
+        // Update state with the resized file and preview image
+        setSelectedFile(resizedFile);
+        const resizedUrl = URL.createObjectURL(blob);
+        setPreviewImage(resizedUrl);
+        // Update the display size state (adding the border)
+        setImageSize({
+          width: Math.round(newWidth) + 20,
+          height: Math.round(newHeight) + 20,
+        });
+        // Clear the "image too large" flag and upload
+        setIsImageTooLarge(false);
+        await handleUpload();
+      }
+    }, selectedFile.type);
+  };  
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files?.[0]) return;
@@ -416,26 +476,40 @@ const Home: React.FC = () => {
 
           {/* Star button (to colorize) - with loading gif for processing */}
           {previewImage && !colorizedImage && (
-            <button
-              onClick={handleUpload}
-              className="ml-4"
-              disabled={isUploading}
-              title="Click here to Colorize"
-            >
-              { isUploading ? (
-                <img
-                  src="/images/loading.gif"
-                  alt="Loading..."
-                  className="cursor-pointer w-50 h-50"
-                />
-              ) : (
-                <img
-                  src="/images/Star.png"
-                  alt="Upload"
-                  className={`cursor-pointer w-50 h-50 transition-opacity`}
-                />
+            <div>
+              <button
+                onClick={handleUpload}
+                className="ml-4"
+                disabled={isUploading}
+                title="Click here to Colorize"
+              >
+                { isUploading ? (
+                  <img
+                    src="/images/loading.gif"
+                    alt="Loading..."
+                    className="cursor-pointer w-50 h-50"
+                  />
+                ) : (
+                  <img
+                    src="/images/Star.png"
+                    alt="Upload"
+                    className={`cursor-pointer w-50 h-50 transition-opacity`}
+                  />
+                )}
+              </button>
+              {isImageTooLarge && (
+                <div className="mt-4 p-4 bg-red-500 text-white rounded">
+                  <p>Our free service does not allow images beyond a size of 512×512 pixels.</p>
+                  <p>Would you like to resize and colorize it anyways?</p>
+                  <button
+                    onClick={resizeAndUpload}
+                    className="mt-2 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Resize and Colorize Anyways
+                  </button>
+                </div>
               )}
-            </button>
+            </div>
           )}
         </div>
 
