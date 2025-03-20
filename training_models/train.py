@@ -10,42 +10,58 @@ import tensorflow as tf
 import cv2
 import os
 
+training_size = 256
+
 # Load training data
-folder_path = 'Data/Black_White/'
+folder_path = 'Data/gray_Data/'
 images_gray = []
+images_done_g = 0
 for img in os.listdir(folder_path):
     img_path = os.path.join(folder_path, img)
-    img = load_img(img_path, target_size=(100,100)) 
+    img = load_img(img_path, target_size=(training_size,training_size), color_mode="grayscale") 
     img = img_to_array(img) / 255
-    gray = color.rgb2gray(img)
-    images_gray.append(gray)
+    images_gray.append(img[:, :, 0])
+    images_done_g += 1
+    print(images_done_g, " GRAY images loaded")
 
 # Load corresponding color data
-folder_path = 'Data/colored/'
+folder_path = 'Data/Data/'
 images_color = []
+images_done = 0
 for img in os.listdir(folder_path):
     img_path = os.path.join(folder_path, img)
-    img = load_img(img_path, target_size=(100,100))
+    img = load_img(img_path, target_size=(training_size,training_size))
     img = img_to_array(img) / 255
     lab_image = rgb2lab(img)
     lab_image_norm = (lab_image + [0, 128, 128]) / [100, 255, 255]
     Y = lab_image_norm[:, :, 1:]
     images_color.append(Y)
+    images_done += 1
+    print(images_done, "/", images_done_g, "COLOR images loaded")
 
 # Ensure consistent shape
+print("Getting sizes...")
 sizeX = max([img.shape[0] for img in images_gray])
 sizeY = max([img.shape[1] for img in images_gray])
+print("...DONE")
 
 # Resize to match sizeX, sizeY
+print("Resizing gray array...")
 images_gray = [cv2.resize(img, (sizeY, sizeX)) for img in images_gray]
+print("...DONE")
+print("Resizing color array...")
 images_color = [cv2.resize(img, (sizeY, sizeX)) for img in images_color]
+print("...DONE")
 
 # Convert to numpy arrays
+print("Converting to numpy arrays...")
 X = np.array(images_gray).reshape(-1, sizeX, sizeY, 1)
 X_size = np.array([[img.shape[1], img.shape[0]] for img in images_gray])
 Y = np.array(images_color).reshape(-1, sizeX, sizeY, 2)
+print("...DONE")
 
 # Define the model
+print("Defining model...")
 x1 = keras.Input(shape=(None, None, 1)) # Dynamic input size
 size_input = keras.Input(shape=(2,), dtype=tf.int32)
 x2 = Conv2D(8, (3, 3), activation='relu', padding='same', strides=2)(x1)
@@ -59,25 +75,41 @@ x9 = UpSampling2D((2, 2))(x8)
 x10 = Conv2D(16, (3, 3), activation='relu', padding='same')(x9)
 x11 = UpSampling2D((2, 2))(x10)
 x12 = Conv2D(2, (3, 3), activation='sigmoid', padding='same')(x11) # 2 for AB channels
+print("...DONE")
 
 # Adjust size of output to match input
+print("Adjusting size of output...")
 x,y = size_input[0]
 x12 = tf.image.resize(x12,[x, y])
 x12 = tf.reshape(x12,(1,x, y,2))
+print("...DONE")
 
 # Finish model
+print("Finalizing model...")
 model = keras.Model(inputs=[x1, size_input], outputs=x12)
+print("...DONE")
 
+print("Compiling model...")
 model.compile(optimizer='rmsprop', loss='mse')
-model.fit([X, X_size], Y, batch_size=1, epochs=4000, validation_split=0.1, verbose=1)
+print("...DONE")
 
-model.evaluate([X, X_size], Y, batch_size=1)
+print("Training model...")
+model.fit([X, X_size], Y, batch_size=1, epochs=400, validation_split=0.1, verbose=1)
+print("...DONE")
+
+print("Evaluating model...")
+model.evaluate([X, X_size], Y, batch_size=8)
+print("...DONE")
 
 # Save model as JSON
+print("Saving model...")
 model_json = model.to_json()
-with open("models/colorizer_model_3.json", "w") as json_file:
+with open("models/colorizer_model_4.json", "w") as json_file:
     json_file.write(model_json)
-model.save_weights('models/colorizer_model_3.h5')
+model.save_weights('models/colorizer_model_4.h5')
+print("...DONE")
+
+print("Generating test image...")
 
 # Test image
 folder_path = 'Data/Test/'
