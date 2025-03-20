@@ -31,48 +31,39 @@ model.load_weights("models/colorizer_model_3.h5")
 # TF Debugger
 #model.summary()
 
-def colorize_image(img_array, patch_size=256):
+def colorize_image(img_array):
     """
-    Processes a grayscale image in smaller patches to avoid memory overload.
-    Returns a colorized RGB image (uint8).
+    Given a grayscale image (numpy array with shape (H, W, 1) scaled to [0,1]),
+    this function runs the model and returns a colorized RGB image (uint8).
     """
+    # Get image dimensions
     h, w = img_array.shape[:2]
-    # Initialize an empty array for AB predictions
-    result_ab = np.zeros((h, w, 2))
-
-    # Process the image patch-by-patch
-    for i in range(0, h, patch_size):
-        for j in range(0, w, patch_size):
-            # Determine the patch boundaries
-            patch = img_array[i:min(i+patch_size, h), j:min(j+patch_size, w), :]
-            patch_h, patch_w, _ = patch.shape
-
-            # Prepare patch for model prediction
-            patch_input = np.expand_dims(patch, axis=0)  # Shape: (1, patch_h, patch_w, 1)
-            size_tensor = np.array([[patch_h, patch_w]], dtype=np.int32)
-            
-            # Get predicted AB channels for the patch
-            patch_ab = model.predict([patch_input, size_tensor])[0]  # Shape: (patch_h, patch_w, 2)
-            
-            # Place the prediction in the corresponding location
-            result_ab[i:i+patch_h, j:j+patch_w, :] = patch_ab
-
-    # Reconstruct the LAB image:
-    # Scale L channel back to [0, 100] range
-    L_channel = img_array[:, :, 0] * 100
-    # Scale predicted A and B channels back to original ranges
-    A_channel = result_ab[:, :, 0] * 255 - 128
-    B_channel = result_ab[:, :, 1] * 255 - 128
-
-    # Combine channels into a LAB image
+    # Expand dimensions to create a batch of 1
+    X = np.expand_dims(img_array, axis=0)  # Shape: (1, h, w, 1)
+    # Create the size tensor as expected by the model (note: model expects [height, width])
+    size_tensor = np.array([[h, w]], dtype=np.int32)
+    
+    # Predict AB channels using the model
+    output = model.predict([X, size_tensor])
+    # output shape: (1, h, w, 2); remove batch dimension
+    AB_img = output[0]  # Shape: (h, w, 2)
+    
+    # Reconstruct LAB image:
+    L_channel = img_array[:, :, 0] * 100  # Scale L from [0,1] to [0,100]
+    A_channel = AB_img[:, :, 0] * 255 - 128  # Scale A from [0,1] to [-128,127]
+    B_channel = AB_img[:, :, 1] * 255 - 128  # Scale B from [0,1] to [-128,127]
+    
+    # Stack channels to form a LAB image
     lab_image = np.stack([L_channel, A_channel, B_channel], axis=-1)
-    # Clip to ensure valid LAB values
+    
+    # Clip to valid LAB ranges
     lab_image[:, :, 0] = np.clip(lab_image[:, :, 0], 0, 100)
     lab_image[:, :, 1] = np.clip(lab_image[:, :, 1], -128, 127)
     lab_image[:, :, 2] = np.clip(lab_image[:, :, 2], -128, 127)
-
-    # Convert LAB to RGB and then scale to uint8
+    
+    # Convert LAB to RGB
     rgb_image = lab2rgb(lab_image)
+    # Convert to uint8
     rgb_image_uint8 = (rgb_image * 255).astype(np.uint8)
     return rgb_image_uint8
 
