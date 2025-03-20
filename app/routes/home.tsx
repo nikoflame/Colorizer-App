@@ -70,7 +70,7 @@ const Home: React.FC = () => {
     };
   };
 
-  const resizeAndUpload = async () => {
+  const resize = async () => {
     if (!selectedFile || !previewImage) return;
   
     const img = new Image();
@@ -79,7 +79,7 @@ const Home: React.FC = () => {
       img.onload = resolve;
     });
     
-    const maxDimension = 256;
+    const maxDimension = 512;
     let newWidth = img.width;
     let newHeight = img.height;
     if (img.width > maxDimension || img.height > maxDimension) {
@@ -118,10 +118,9 @@ const Home: React.FC = () => {
         });
         // Clear the "image too large" flag and upload
         setIsImageTooLarge(false);
-        await handleUpload();
       }
     }, selectedFile.type);
-  };  
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files?.[0]) return;
@@ -488,12 +487,12 @@ const Home: React.FC = () => {
           {isImageTooLarge ? (
             <div className="mt-4 p-4 bg-red-500 text-white rounded">
               <p>Your image is too large!</p>
-              <p>Our free service does not allow images beyond a size of 256x256 pixels.</p>
+              <p>Our free service does not allow images beyond a size of 512x512 pixels.</p>
               <p> </p>
               <p>Would you like us to resize it for you?</p>
               <div className="flex flex-col space-x-4">
                 <button
-                  onClick={resizeAndUpload}
+                  onClick={resize}
                   className="mt-2 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
                 >
                   Resize my image for me
