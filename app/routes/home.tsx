@@ -241,7 +241,7 @@ const Home: React.FC = () => {
         <div className="relative flex flex-row items-start">
           {/* Main border (label) - triggers file input */}
           <label
-            htmlFor="file-upload"
+            htmlFor={ feedbackActive ? "" : "file-upload"}
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
