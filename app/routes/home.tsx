@@ -79,7 +79,7 @@ const Home: React.FC = () => {
       img.onload = resolve;
     });
     
-    const maxDimension = 512;
+    const maxDimension = 256;
     let newWidth = img.width;
     let newHeight = img.height;
     if (img.width > maxDimension || img.height > maxDimension) {
@@ -387,7 +387,7 @@ const Home: React.FC = () => {
                       { feedbackSuccess ? null : (
                           <button
                             className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
-                            onClick={handleNoThankYou}
+                            onClick={feedbackActive ? handleNoThankYou : handleReturnHomeFromFeedback}
                             disabled={isFeedbackSubmitting || isNoFeedbackSubmitting}
                           >
                             No, thank you <span className="text-sm ml-1">(return to home page)</span>
@@ -488,21 +488,23 @@ const Home: React.FC = () => {
           {isImageTooLarge ? (
             <div className="mt-4 p-4 bg-red-500 text-white rounded">
               <p>Your image is too large!</p>
-              <p>Our free service does not allow images beyond a size of 512×512 pixels.</p>
+              <p>Our free service does not allow images beyond a size of 256x256 pixels.</p>
               <p> </p>
               <p>Would you like us to resize it for you?</p>
-              <button
-                onClick={resizeAndUpload}
-                className="mt-2 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Resize my image for me
-              </button>
-              <button
-                className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
-                onClick={handleReturnHomeFromFeedback}
-              >
-                No, thank you <span className="text-sm ml-1">(return to home page)</span>
-              </button>
+              <div className="flex flex-col space-x-4">
+                <button
+                  onClick={resizeAndUpload}
+                  className="mt-2 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Resize my image for me
+                </button>
+                <button
+                  className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+                  onClick={handleReturnHomeFromFeedback}
+                >
+                  No, thank you <span className="text-sm ml-1">(return to home page)</span>
+                </button>
+              </div>
             </div>
           ) : previewImage && !colorizedImage && (
               <button
