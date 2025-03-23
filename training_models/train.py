@@ -10,7 +10,7 @@ import tensorflow as tf
 import cv2
 import os
 
-training_size = 256
+training_size = 100
 
 # Load training data
 folder_path = 'Data/gray_Data/'
@@ -98,7 +98,7 @@ model.fit([X, X_size], Y, batch_size=1, epochs=400, validation_split=0.1, verbos
 print("...DONE")
 
 print("Evaluating model...")
-model.evaluate([X, X_size], Y, batch_size=8)
+model.evaluate([X, X_size], Y, batch_size=1)
 print("...DONE")
 
 # Save model as JSON
