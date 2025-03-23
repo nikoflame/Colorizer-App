@@ -640,6 +640,16 @@ const Home: React.FC = () => {
             Click here to leave feedback for a previous experience, or anything else!
         </button>
       )}
+
+      {/* Loading time warning */}
+      <div className="mt-4 p-2 bg-red-500 text-white rounded text-center">
+        <p className="mt-4 text-3xl">This is a free service!</p>
+        <p>----------</p>
+        <p className="mt-2 text-xl">Be aware that loading times may take up to 3 minutes</p>
+        <p className="mt-2 text-xl">for the first request after the server has been idle for a while</p>
+        <p>----------</p>
+        <p className="mt-2 text-xl">Thank you for your understanding!</p>
+      </div>
   
       {/* Footer */}
       <style>
