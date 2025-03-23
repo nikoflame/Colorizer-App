@@ -12,7 +12,7 @@ app.use(express.json());
 
 // CORS fix
 app.use(cors({
-  origin: 'https://colorizer-app.onrender.com'
+  origin: ['https://colorizer-app.onrender.com', 'http://localhost:5173'],
 }));
 
 
