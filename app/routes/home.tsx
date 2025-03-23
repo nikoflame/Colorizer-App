@@ -30,6 +30,7 @@ const Home: React.FC = () => {
   const [isImageTooLarge, setIsImageTooLarge] = useState<boolean>(false);
   const [secondaryFeedbackActive, setSecondaryFeedbackActive] = useState<boolean>(false);
   const [downloadFileName, setDownloadFileName] = useState<string>("");
+  const [thumbsUpFeedbackActive, setThumbsUpFeedbackActive] = useState<boolean>(false);
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
@@ -200,6 +201,9 @@ const Home: React.FC = () => {
     if (!thumbsUp) {
       setThumbsDown(false);
       setFeedbackActive(false);
+      setThumbsUpFeedbackActive(true);
+    } else {
+      setThumbsUpFeedbackActive(false)
     }
   };
 
@@ -208,7 +212,9 @@ const Home: React.FC = () => {
     setThumbsDown(!thumbsDown);
     if (!thumbsDown) {
       setThumbsUp(false);
-      setFeedbackActive(!thumbsDown);
+      setFeedbackActive(true);
+    } else {
+      setFeedbackActive(false)
     }
   }
 
@@ -596,6 +602,31 @@ const Home: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* ThumbsUp Feedback section, hidden until thumbs up */}
+            {thumbsUpFeedbackActive && (
+              <div className="flex flex-col items-center mt-4">
+                <p className="mb-2 text-xl">Would you like to leave a comment?</p>
+                <div className="flex flex-row items-center space-y-4">
+                  <textarea
+                    className="w-full max-w-xl h-24 p-2 border border-gray-300 rounded"
+                    placeholder="Your feedback here..."
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                  />
+                  <button
+                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                    onClick={handleSubmitFeedback}
+                    disabled={isFeedbackSubmitting || isNoFeedbackSubmitting || feedbackSuccess}
+                  >{isFeedbackSubmitting 
+                    ? "Submitting, please wait..." 
+                    : feedbackSuccess
+                    ? "Thanks!"
+                    : "Submit"
+                  }</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -610,7 +641,7 @@ const Home: React.FC = () => {
         </button>
       )}
   
-        {/* Footer */}
+      {/* Footer */}
       <style>
         {`
           .text-gradient {
