@@ -4,15 +4,14 @@ import {
   ArrowDownTrayIcon,
   ArrowLeftIcon,
   HandThumbUpIcon as HandThumbUpIconOutline,
-  HandThumbDownIcon as HandThumbDownIconOutline
+  HandThumbDownIcon as HandThumbDownIconOutline,
 } from "@heroicons/react/24/outline";
-import { 
+import {
   HandThumbUpIcon as HandThumbUpIconSolid,
-  HandThumbDownIcon as HandThumbDownIconSolid
- } from "@heroicons/react/24/solid";
-import { set } from "mongoose";
+  HandThumbDownIcon as HandThumbDownIconSolid,
+} from "@heroicons/react/24/solid";
 
-const Home: React.FC = () => {
+const Mobile: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageSize, setImageSize] = useState<{ width: number; height: number }>({ width: 500, height: 300 });
@@ -31,27 +30,36 @@ const Home: React.FC = () => {
   const [secondaryFeedbackActive, setSecondaryFeedbackActive] = useState<boolean>(false);
   const [downloadFileName, setDownloadFileName] = useState<string>("");
   const [thumbsUpFeedbackActive, setThumbsUpFeedbackActive] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // Detect mobile screen sizes
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Helper to process file uploads (from file input or drag and drop)
   const processFile = (file: File) => {
     setSelectedFile(file);
     setColorizedImage(null); // Reset colorized image if a new file is selected
-    setThumbsUp(false);      // Reset thumbs up when a new file is uploaded
-  
+    setThumbsUp(false); // Reset thumbs up when a new file is uploaded
+
     // Set the default download file name using the file's name (without extension)
     const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     setDownloadFileName(`${baseName}_colorized`);
-  
+
     const imageUrl = URL.createObjectURL(file);
     setPreviewImage(imageUrl);
-  
+
     // Create an image element to get its original dimensions
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
       const { width, height } = img;
       const maxDimension = 512;
-  
+
       if (width > maxDimension || height > maxDimension) {
         // Mark the image as too large and prompt the user for resizing
         setIsImageTooLarge(true);
@@ -74,17 +82,17 @@ const Home: React.FC = () => {
         setIsImageTooLarge(false);
       }
     };
-  };  
+  };
 
   const resize = async () => {
     if (!selectedFile || !previewImage) return;
-  
+
     const img = new Image();
     img.src = previewImage;
     await new Promise((resolve) => {
       img.onload = resolve;
     });
-    
+
     const maxDimension = 512;
     let newWidth = img.width;
     let newHeight = img.height;
@@ -97,7 +105,7 @@ const Home: React.FC = () => {
         newWidth = (img.width / img.height) * maxDimension;
       }
     }
-    
+
     const canvas = document.createElement("canvas");
     canvas.width = newWidth;
     canvas.height = newHeight;
@@ -107,7 +115,7 @@ const Home: React.FC = () => {
       return;
     }
     ctx.drawImage(img, 0, 0, newWidth, newHeight);
-    
+
     // Convert the canvas content to a Blob
     canvas.toBlob(async (blob) => {
       if (blob) {
@@ -203,7 +211,7 @@ const Home: React.FC = () => {
       setFeedbackActive(false);
       setThumbsUpFeedbackActive(true);
     } else {
-      setThumbsUpFeedbackActive(false)
+      setThumbsUpFeedbackActive(false);
     }
   };
 
@@ -214,91 +222,95 @@ const Home: React.FC = () => {
       setThumbsUp(false);
       setFeedbackActive(true);
     } else {
-      setFeedbackActive(false)
+      setFeedbackActive(false);
     }
-  }
+  };
 
   const handleSubmitFeedback = () => {
     setIsFeedbackSubmitting(true);
-    console.log('Submitting feedback:', feedback);
-    fetch('https://colorizer-app-2.onrender.com/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    console.log("Submitting feedback:", feedback);
+    fetch("https://colorizer-app-2.onrender.com/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ feedback }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          console.log('Feedback stored with ID:', data.id);
+          console.log("Feedback stored with ID:", data.id);
           setFeedbackSuccess(true);
         } else {
-          console.error('Error storing feedback:', data.error);
+          console.error("Error storing feedback:", data.error);
           setFeedbackError(true);
         }
       })
-      .catch((err) => console.error('Fetch error:', err))
+      .catch((err) => console.error("Fetch error:", err))
       .finally(() => {
         setIsFeedbackSubmitting(false);
       });
   };
-  
+
   const handleNoThankYou = () => {
     setIsNoFeedbackSubmitting(true);
-    fetch('https://colorizer-app-2.onrender.com/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feedback: 'N/A' }),
+    fetch("https://colorizer-app-2.onrender.com/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feedback: "N/A" }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          console.log('Feedback stored with ID:', data.id);
-          setFeedback(''); // Clear the textarea after submission
-          window.location.href = '/'; // Go back to the home page
+          console.log("Feedback stored with ID:", data.id);
+          setFeedback(""); // Clear the textarea after submission
+          window.location.href = "/"; // Go back to the home page
         } else {
-          console.error('Error storing feedback:', data.error);
-          window.location.href = '/'; // Go back to the home page anyways
+          console.error("Error storing feedback:", data.error);
+          window.location.href = "/"; // Go back to the home page anyways
         }
       })
-      .catch((err) => console.error('Fetch error:', err))
+      .catch((err) => console.error("Fetch error:", err))
       .finally(() => {
         setIsNoFeedbackSubmitting(false);
       });
   };
 
   const handleReturnHomeFromFeedback = () => {
-    setFeedback(''); // Clear the textarea after submission
-    window.location.href = '/'; // Go back to the home page
+    setFeedback(""); // Clear the textarea after submission
+    window.location.href = "/"; // Go back to the home page
   };
 
-  // Calculate the main border container size
-  const containerWidth = feedbackActive 
-    ? 800 // fixed width for feedback section
+  // Calculate the main border container size (desktop only)
+  const containerWidth =
+    feedbackActive
+      ? 800
       : previewImage
       ? colorizedImage
-        ? imageSize.width * 2 - 20 // 2 images side by side, but one shared border
+        ? imageSize.width * 2 - 20
         : imageSize.width
-      : 500; // fallback if no preview
+      : 500;
+  const containerHeight = feedbackActive ? 500 : previewImage ? imageSize.height : 300;
 
-  const containerHeight = feedbackActive ? 500 // fixed height for feedback section
-    : previewImage ? imageSize.height : 300; // fallback if no preview
+  // Determine the style for the label container – use inline sizes only on desktop
+  const labelStyle = !isMobile
+    ? dragActive
+      ? { width: `${containerWidth + 10}px`, height: `${containerHeight + 10}px` }
+      : { width: `${containerWidth}px`, height: `${containerHeight}px` }
+    : {};
 
   // Display text for the feedback section
   const feedbackText = thumbsUp ? "Thanks!" : "How did we do?";
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E005F] text-white">
-      <h1 className="text-9xl mb-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0E005F] text-white px-4">
+      <h1 className="text-5xl md:text-9xl mb-6">
         AI Col<span className="text-gradient">orizer</span>
       </h1>
 
-      {/* Row container: main images + star, plus the back button, plus the extra boxes on the right */}
-      <div className="flex flex-row items-start">
-
-        {/* Left-side boxes: only show if we have a preview or secondary feedback */}
+      {/* Main container: stack vertically on mobile, row on desktop */}
+      <div className="flex flex-col md:flex-row items-center">
+        {/* Left-side (Back button) */}
         {(previewImage || secondaryFeedbackActive) && (
-          <div className="flex flex-col items-center mr-4">
-            {/* Box for the back button icon */}
+          <div className="flex flex-col items-center mb-4 md:mb-0 md:mr-4">
             <div className="border-[5px] border-white rounded-xl flex flex-col items-center">
               <a href="/" title="Back to Home">
                 <ArrowLeftIcon className="h-12 w-12 text-white" />
@@ -308,198 +320,157 @@ const Home: React.FC = () => {
           </div>
         )}
 
-        {/* Main border container + star button */}
-        <div className="relative flex flex-row items-start">
-          {/* Main border (label) - triggers file input */}
+        {/* Middle container: Upload area and colorize button */}
+        <div className="relative flex flex-col md:flex-row items-center">
+          {/* Main border container – responsive: fixed sizes on desktop, fluid on mobile */}
           <label
-            htmlFor={ (secondaryFeedbackActive || feedbackActive) ? "" : "file-upload"}
+            htmlFor={secondaryFeedbackActive || feedbackActive ? "" : "file-upload"}
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-[10px] border-white rounded-xl flex ${dragActive ? 'bg-gray-400' : ''}`}
-            style= {dragActive ? {
-              width: `${containerWidth +10}px`,
-              height: `${containerHeight +10}px`,
-            } : {
-              width: `${containerWidth}px`,
-              height: `${containerHeight}px`,
-            }}
+            className={`border-[10px] border-white rounded-xl flex ${dragActive ? "bg-gray-400" : ""} ${
+              isMobile ? "w-11/12" : ""
+            }`}
+            style={labelStyle}
           >
             {/* Feedback section */}
-            {
-              (secondaryFeedbackActive || feedbackActive) ? (
-                <div className="w-full h-full flex flex-col items-center justify-center">
-                  {feedbackActive && (
-                    // Image preview and colorized image
-                    <div className="border-[10px] border-white rounded-xl flex">
-                      <div
-                        className="flex items-center justify-center"
-                      >
-                        {/* Preview image with fallback */}
-                        <img
-                          src={previewImage ?? ""}
-                          alt="Preview"
-                          className="rounded-xl"
-                          style={{
-                            maxWidth: "128px",
-                            maxHeight: "128px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
-                      <div
-                        className="flex items-center justify-center"
-                      >
-                        {/* Colorized image with fallback */}
-                        <img
-                          src={colorizedImage ?? ""}
-                          alt="Colorized"
-                          className="rounded-xl"
-                          style={{
-                            maxWidth: "128px",
-                            maxHeight: "128px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {/* Textbox section */}
-                  {feedbackActive ? (
-                    <div>
-                      <h2 className="text-2xl font-semibold mt-2">I'm sorry we didn't match your expectations!</h2>
-                      <p className="text-2xl font-semibold mt-2">Please give us feedback so we can improve:</p>
-                    </div>
-                  ) : (
-                    <h2 className="text-2xl font-semibold mt-2">We'd love to hear your feedback!</h2>
-                  )}
-                  <div className="mt-4 flex flex-col items-center space-y-4">
-                    <textarea
-                      className="w-full max-w-xl h-24 p-2 border border-gray-300 rounded"
-                      placeholder="Your feedback here..."
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                    />
-
-                    {/* Buttons row */}
-                    <div className="flex space-x-4">
-                      <button
-                        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                        onClick={feedbackSuccess ? handleReturnHomeFromFeedback : handleSubmitFeedback}
-                        disabled={isFeedbackSubmitting || isNoFeedbackSubmitting}
-                      >
-                        {feedbackSuccess 
-                          ? "Thank you for your feedback! Click here to go back to the home page." 
-                          : "SUBMIT"
-                        }
-                      </button>
-                      { feedbackSuccess ? null : (
-                          <button
-                            className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
-                            onClick={feedbackActive ? handleNoThankYou : handleReturnHomeFromFeedback}
-                            disabled={isFeedbackSubmitting || isNoFeedbackSubmitting}
-                          >
-                            No, thank you <span className="text-sm ml-1">(return to home page)</span>
-                          </button>
-                        )
-                      }
-                    </div>
-
-                    {/* Loading state */}
-                    { isFeedbackSubmitting ? 
-                      (
-                        <div className="flex flex-col items-center">
-                          <p className="text-2xl font-semibold mt-2">Please wait... Submitting feedback</p>
-                          <img
-                            src="/images/loading.gif"
-                            alt="Loading..."
-                            className="cursor-pointer w-24 h-24"
-                          />
-                        </div>
-                      ) : isNoFeedbackSubmitting ? (
-                        <div className="flex flex-col items-center">
-                          <p className="text-2xl font-semibold mt-2">Please wait... Sending thumbs-down as feedback</p>
-                          <img
-                            src="/images/loading.gif"
-                            alt="Loading..."
-                            className="cursor-pointer w-24 h-24"
-                          />
-                        </div>
-                      )
-                    : null }
-                  </div>
-                </div>
-              ) : previewImage ? (
-                <>
-                  {/* Preview (left side) */}
-                  <div
-                    style={{
-                      width: `${imageSize.width - 20}px`,
-                      height: `${imageSize.height - 20}px`,
-                    }}
-                    className="flex items-center justify-center"
-                  >
-                    <img
-                      src={previewImage}
-                      alt="Preview"
-                      className="rounded-xl"
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </div>
-
-                  {/* Colorized image (right side), if available */}
-                  {colorizedImage && (
-                    <div
-                      style={{
-                        width: `${imageSize.width - 20}px`,
-                        height: `${imageSize.height - 20}px`,
-                      }}
-                      className="flex items-center justify-center"
-                    >
+            {secondaryFeedbackActive || feedbackActive ? (
+              <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                {feedbackActive && (
+                  <div className="border-[10px] border-white rounded-xl flex flex-col md:flex-row items-center gap-4">
+                    <div className="flex items-center justify-center">
                       <img
-                        src={colorizedImage}
+                        src={previewImage ?? ""}
+                        alt="Preview"
+                        className="rounded-xl"
+                        style={{ maxWidth: "128px", maxHeight: "128px", objectFit: "cover" }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <img
+                        src={colorizedImage ?? ""}
                         alt="Colorized"
                         className="rounded-xl"
-                        style={{
-                          maxWidth: "100%",
-                          maxHeight: "100%",
-                          objectFit: "cover",
-                        }}
+                        style={{ maxWidth: "128px", maxHeight: "128px", objectFit: "cover" }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {feedbackActive ? (
+                  <div>
+                    <h2 className="text-2xl font-semibold mt-2">
+                      I'm sorry we didn't match your expectations!
+                    </h2>
+                    <p className="text-2xl font-semibold mt-2">
+                      Please give us feedback so we can improve:
+                    </p>
+                  </div>
+                ) : (
+                  <h2 className="text-2xl font-semibold mt-2">We'd love to hear your feedback!</h2>
+                )}
+                <div className="mt-4 flex flex-col items-center space-y-4">
+                  <textarea
+                    className="w-full max-w-md md:max-w-xl h-24 p-2 border border-gray-300 rounded"
+                    placeholder="Your feedback here..."
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                  />
+
+                  <div className="flex space-x-4">
+                    <button
+                      className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                      onClick={feedbackSuccess ? handleReturnHomeFromFeedback : handleSubmitFeedback}
+                      disabled={isFeedbackSubmitting || isNoFeedbackSubmitting}
+                    >
+                      {feedbackSuccess
+                        ? "Thank you for your feedback! Click here to go back to the home page."
+                        : "SUBMIT"}
+                    </button>
+                    {feedbackSuccess ? null : (
+                      <button
+                        className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+                        onClick={feedbackActive ? handleNoThankYou : handleReturnHomeFromFeedback}
+                        disabled={isFeedbackSubmitting || isNoFeedbackSubmitting}
+                      >
+                        No, thank you <span className="text-sm ml-1">(return to home page)</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {(isFeedbackSubmitting || isNoFeedbackSubmitting) && (
+                    <div className="flex flex-col items-center">
+                      <p className="text-2xl font-semibold mt-2">
+                        {isFeedbackSubmitting
+                          ? "Please wait... Submitting feedback"
+                          : "Please wait... Sending thumbs-down as feedback"}
+                      </p>
+                      <img
+                        src="/images/loading.gif"
+                        alt="Loading..."
+                        className="cursor-pointer w-24 h-24"
                       />
                     </div>
                   )}
-                </>
-              ) : (
-                // Otherwise, show the upload prompt
-                <div className="w-full h-full flex flex-col items-center justify-center">
-                  <ArrowUpTrayIcon className="h-32 w-32 text-white" />
-                  <h2 className="text-5xl font-semibold mt-4">Upload an image</h2>
-                  <p className="text-xl mt-2">Click to browse</p>
-                  <p className="text-xl">or</p>
-                  <p className="text-xl">Drag and drop</p>
                 </div>
+              </div>
+            ) : previewImage ? (
+              <div className="flex flex-col md:flex-row items-center gap-4 p-2">
+                {/* Preview image container */}
+                <div
+                  style={
+                    !isMobile
+                      ? { width: `${imageSize.width - 20}px`, height: `${imageSize.height - 20}px` }
+                      : {}
+                  }
+                  className="flex items-center justify-center w-full"
+                >
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="rounded-xl w-full h-auto object-cover"
+                  />
+                </div>
+                {/* Colorized image container */}
+                {colorizedImage && (
+                  <div
+                    style={
+                      !isMobile
+                        ? { width: `${imageSize.width - 20}px`, height: `${imageSize.height - 20}px` }
+                        : {}
+                    }
+                    className="flex items-center justify-center w-full"
+                  >
+                    <img
+                      src={colorizedImage}
+                      alt="Colorized"
+                      className="rounded-xl w-full h-auto object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Upload prompt
+              <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                <ArrowUpTrayIcon className="h-32 w-32 text-white" />
+                <h2 className="text-5xl font-semibold mt-4">Upload an image</h2>
+                <p className="text-xl mt-2">Click to browse</p>
+                <p className="text-xl">or</p>
+                <p className="text-xl">Drag and drop</p>
+              </div>
             )}
           </label>
 
           {/* Hidden file input */}
-          <input
-            id="file-upload"
-            type="file"
-            onChange={handleFileChange}
-            className="hidden"
-          />
+          <input id="file-upload" type="file" onChange={handleFileChange} className="hidden" />
 
-          {/* Star button (to colorize) - with loading gif for processing */}
+          {/* Star button (colorize trigger) */}
           {isImageTooLarge ? (
             <div className="mt-4 p-4 bg-red-500 text-white rounded">
               <p>Your image is too large!</p>
-              <p>Our free service does not allow images beyond a size of 512x512 pixels.</p>
-              <p> </p>
+              <p>
+                Our free service does not allow images beyond a size of 512x512 pixels.
+              </p>
               <p>Would you like us to resize it for you?</p>
               <div className="flex flex-col space-x-4">
                 <button
@@ -517,41 +488,40 @@ const Home: React.FC = () => {
               </div>
             </div>
           ) : previewImage && !colorizedImage && (
-              <button
-                onClick={handleUpload}
-                className="ml-4"
-                disabled={isUploading}
-                title="Click here to Colorize"
-              >
-                { isUploading ? (
-                  <div className="flex flex-col items-center">
-                    <img
-                      src="/images/loading.gif"
-                      alt="Loading..."
-                      className="cursor-pointer w-50 h-50"
-                    />
-                    <p className="text-xl font-semibold mt-2">Colorizing, please wait...</p>
-                    <p className="text-xl mt-2">This may take up to three minutes depending on image size...</p>
-                  </div>
-                ) : (
+            <button
+              onClick={handleUpload}
+              className="mt-4 md:ml-4"
+              disabled={isUploading}
+              title="Click here to Colorize"
+            >
+              {isUploading ? (
+                <div className="flex flex-col items-center">
                   <img
-                    src="/images/Star.png"
-                    alt="Upload"
-                    className={`cursor-pointer w-50 h-50 transition-opacity`}
+                    src="/images/loading.gif"
+                    alt="Loading..."
+                    className="cursor-pointer w-50 h-50"
                   />
-                )}
-              </button>
+                  <p className="text-xl font-semibold mt-2">Colorizing, please wait...</p>
+                  <p className="text-xl mt-2">
+                    This may take up to three minutes depending on image size...
+                  </p>
+                </div>
+              ) : (
+                <img
+                  src="/images/Star.png"
+                  alt="Upload"
+                  className="cursor-pointer w-50 h-50 transition-opacity"
+                />
+              )}
+            </button>
           )}
         </div>
 
-        {/* Right-side boxes: only show if we have a colorized image */}
+        {/* Right-side container: Download and feedback (responsive margin adjustments) */}
         {colorizedImage && (
-          <div className="flex flex-col items-center ml-4">
-
-            <p className="text-sm ml-1">Change file name here:</p>
-
-            {/* File name input above the thumbnail */}
-            <div className="flex flex-row items-center ml-4">
+          <div className="flex flex-col items-center mt-4 md:mt-0 md:ml-4">
+            <p className="text-sm">Change file name here:</p>
+            <div className="flex flex-row items-center">
               <div className="mb-2">
                 <input
                   type="text"
@@ -562,8 +532,6 @@ const Home: React.FC = () => {
               </div>
               <p className="ml-2 text-xl font-semibold">.png</p>
             </div>
-
-            {/* Box for the small colorized thumbnail */}
             <div className="border-[10px] border-white rounded-xl mb-4">
               <img
                 src={colorizedImage}
@@ -572,8 +540,6 @@ const Home: React.FC = () => {
                 className="rounded"
               />
             </div>
-
-            {/* Box for the download icon */}
             <div className="border-[5px] border-white rounded-xl flex flex-col items-center">
               <a
                 href={colorizedImage}
@@ -583,33 +549,42 @@ const Home: React.FC = () => {
                 <ArrowDownTrayIcon className="h-12 w-12 text-white" />
               </a>
             </div>
-
             <p className="mt-2 text-xl font-semibold">Download</p>
-
-            {/* Feedback section */}
             <div className="flex flex-col items-center mt-4">
               <p className="mb-2 text-xl font-semibold">{feedbackText}</p>
               <div className="flex flex-row space-x-4">
                 {thumbsUp && !thumbsDown ? (
-                  <HandThumbUpIconSolid className="h-8 w-8 cursor-pointer" onClick={handleThumbUpClick} />
+                  <HandThumbUpIconSolid
+                    className="h-8 w-8 cursor-pointer"
+                    onClick={handleThumbUpClick}
+                  />
                 ) : (
-                  <HandThumbUpIconOutline className="h-8 w-8 cursor-pointer" onClick={handleThumbUpClick} />
+                  <HandThumbUpIconOutline
+                    className="h-8 w-8 cursor-pointer"
+                    onClick={handleThumbUpClick}
+                  />
                 )}
                 {thumbsDown && !thumbsUp ? (
-                  <HandThumbDownIconSolid className="h-8 w-8 cursor-pointer" onClick={handleThumbDownClick} />
+                  <HandThumbDownIconSolid
+                    className="h-8 w-8 cursor-pointer"
+                    onClick={handleThumbDownClick}
+                  />
                 ) : (
-                  <HandThumbDownIconOutline className="h-8 w-8 cursor-pointer" onClick={handleThumbDownClick} />
+                  <HandThumbDownIconOutline
+                    className="h-8 w-8 cursor-pointer"
+                    onClick={handleThumbDownClick}
+                  />
                 )}
               </div>
             </div>
-
-            {/* ThumbsUp Feedback section, hidden until thumbs up */}
             {thumbsUpFeedbackActive && (
               <div className="flex flex-col items-center mt-4">
-                <p className="mb-2 text-xl">Would you like to leave a comment?</p>
-                <div className="flex flex-row items-center space-y-4">
+                <p className="mb-2 text-xl">
+                  Would you like to leave a comment?
+                </p>
+                <div className="flex flex-col items-center gap-4">
                   <textarea
-                    className="w-full max-w-xl h-24 p-2 border border-gray-300 rounded"
+                    className="w-full max-w-md md:max-w-xl h-24 p-2 border border-gray-300 rounded"
                     placeholder="Your feedback here..."
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
@@ -617,13 +592,16 @@ const Home: React.FC = () => {
                   <button
                     className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
                     onClick={handleSubmitFeedback}
-                    disabled={isFeedbackSubmitting || isNoFeedbackSubmitting || feedbackSuccess}
-                  >{isFeedbackSubmitting 
-                    ? "Submitting, please wait..." 
-                    : feedbackSuccess
-                    ? "Thanks!"
-                    : "Submit"
-                  }</button>
+                    disabled={
+                      isFeedbackSubmitting || isNoFeedbackSubmitting || feedbackSuccess
+                    }
+                  >
+                    {isFeedbackSubmitting
+                      ? "Submitting, please wait..."
+                      : feedbackSuccess
+                      ? "Thanks!"
+                      : "Submit"}
+                  </button>
                 </div>
               </div>
             )}
@@ -633,11 +611,11 @@ const Home: React.FC = () => {
 
       {/* Feedback button */}
       {!colorizedImage && (
-        <button 
+        <button
           onClick={() => setSecondaryFeedbackActive(true)}
           className="mt-4 p-4 bg-white text-black rounded"
-          >
-            Click here to leave feedback for a previous experience, or anything else!
+        >
+          Click here to leave feedback for a previous experience, or anything else!
         </button>
       )}
 
@@ -645,13 +623,17 @@ const Home: React.FC = () => {
       <div className="mt-4 p-2 bg-red-500 text-white rounded text-center">
         <p className="mt-4 text-3xl">This is a free service!</p>
         <p>----------</p>
-        <p className="mt-2 text-xl">Be aware that loading times may take up to 3 minutes</p>
-        <p className="mt-2 text-xl">for the first request after the server has been idle for a while</p>
+        <p className="mt-2 text-xl">
+          Be aware that loading times may take up to 3 minutes
+        </p>
+        <p className="mt-2 text-xl">
+          for the first request after the server has been idle for a while
+        </p>
         <p>----------</p>
         <p className="mt-2 text-xl">Thank you for your understanding!</p>
       </div>
-  
-      {/* Footer */}
+
+      {/* Footer with text gradient */}
       <style>
         {`
           .text-gradient {
@@ -665,4 +647,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default Mobile;
