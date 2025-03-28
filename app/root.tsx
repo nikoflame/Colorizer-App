@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -6,7 +5,6 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useNavigate
 } from "react-router";
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -43,16 +41,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  // Redirect mobile users to a dedicated mobile rout
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      navigate("/mobile");
-    }
-  }, [navigate]);
-
   return <Outlet />;
 }
 
