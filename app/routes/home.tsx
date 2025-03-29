@@ -533,7 +533,8 @@ const Home: React.FC = () => {
                       className="cursor-pointer w-50 h-50"
                     />
                     <p className="text-xl font-semibold mt-2">Colorizing, please wait...</p>
-                    <p className="text-xl mt-2">This may take up to three minutes depending on image size...</p>
+                    <p className="text-xl mt-2">This may take up to three minutes</p>
+                    <p className="text-xl mt-2">if the server has been idle for a while...</p>
                   </div>
                 ) : (
                   <img
